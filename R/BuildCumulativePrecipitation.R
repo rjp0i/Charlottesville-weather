@@ -64,7 +64,7 @@ median.annotation <- paste("As of", format(last.date, "%B %d, %Y,"),
                            "McCormick Observatory has received", round(today.vs.median$cum_precip, 1), 
                            "cumulative inches of rain, year-to-date,",
                            "compared with a median of", round(today.vs.median$x50, 1),
-                           "in years since 1939.")
+                           "in years since 1893.")
 
 cum.precip.graph <- daily.summary.stats |>
   filter(day_of_year < 366) |>
@@ -110,7 +110,7 @@ cum.precip.graph <- daily.summary.stats |>
                         "The ribbons cover the",
                         "historical range. The last date shown is", 
                         format(last.date, "%b %d, %Y.")),
-       caption = paste("Records begin on January 1, 1939.",
+       caption = paste("Records begin on January 1, 1893.",
                        "This graph was last updated on", format(Sys.Date(), "%B %d, %Y."),
                        "Cumulative totals include February 29th during leap years.")) +
   annotate("label", x = 10, y = 40, label = str_wrap(median.annotation, 40),
