@@ -3,7 +3,7 @@ on:
     - cron: "0 19 * * *"
   workflow_dispatch:
 
-name: Milwaukee weather update
+name: McCormick Observatory weather update
 
 jobs:
   render:
@@ -42,7 +42,7 @@ jobs:
         with:
           timeout_seconds: 30
           max_attempts: 3
-          command: Rscript -e 'source("R/Retrieve_GHCN_USW00014839.R")'
+          command: Rscript -e 'source("R/Retrieve_GHCN_UUSC00441593.R")'
           continue_on_error: true
           
       - name: Build temperature graph
