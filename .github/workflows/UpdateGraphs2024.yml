@@ -34,22 +34,12 @@ jobs:
             any::data.table
             any::R.utils
       
-      - name: Check out repository
-        uses: actions/checkout@v4
-      
-      - name: Retrieve data
-        uses: nick-fields/retry@v3
-        with:
-          timeout_seconds: 30
-          max_attempts: 3
-          command: Rscript -e 'source("R/Retrieve_GHCN_USC00441593.R")'
-          continue_on_error: true
           
       - name: Build temperature graph
-        run:  Rscript -e 'source("R/BuildDailyHigh.R")'
+        run:  Rscript -e 'source("R/BuildDailyHigh2024.R")'
         
       - name: Build precipitation graph
-        run:  Rscript -e 'source("R/BuildCumulativePrecipitation.R")'
+        run:  Rscript -e 'source("R/BuildCumulativePrecipitation2024.R")'
         
       - name: Commit graphs
         uses: stefanzweifel/git-auto-commit-action@v5
