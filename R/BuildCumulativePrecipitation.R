@@ -5,7 +5,7 @@ library(dplyr)
 library(lubridate)
 library(stringr)
 
-ghcn <- read_csv("data/GHCN_USW00014839.csv") |>
+ghcn <- read_csv("data/GHCN_USC00441593.csv") |>
   group_by(year) |>
   arrange(day_of_year) |>
   mutate(cum_precip = cumsum(PRCP)) |>
@@ -104,7 +104,7 @@ cum.precip.graph <- daily.summary.stats |>
                      breaks = month.breaks$day_of_year + 15,
                      labels = month.breaks$month_name,
                      name = NULL) +
-  labs(title = "Cumulative annual precipitation at Milwaukee's Mitchell Airport",
+  labs(title = "Cumulative annual precipitation at Charlottesville's McCormick Observatory",
        subtitle = paste("The line shows precipitation for",
                         paste0(lubridate::year(last.date), "."),
                         "The ribbons cover the",
@@ -126,5 +126,5 @@ cum.precip.graph <- daily.summary.stats |>
 
 cum.precip.graph
 
-ggsave("graphs/AnnualCumulativePrecipitation_USW00014839.png", plot = cum.precip.graph,
+ggsave("graphs/AnnualCumulativePrecipitation_USC00441593.png", plot = cum.precip.graph,
        width = 8, height = 4)
