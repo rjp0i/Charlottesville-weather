@@ -33,7 +33,9 @@ jobs:
             any::here
             any::data.table
             any::R.utils
-      
+            
+      - name: Check out repository
+        uses: actions/checkout@v4 
           
       - name: Build temperature graph
         run:  Rscript -e 'source("R/BuildDailyHigh.R")'
