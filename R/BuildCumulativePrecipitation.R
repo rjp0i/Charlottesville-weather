@@ -39,7 +39,7 @@ daily.summary.stats <- past.years |>
 
 # month breaks
 month.breaks <- ghcn |>
-  filter(year == 2019) |>
+  filter(year == 2024) |>
   group_by(month) |>
   slice_min(order_by = day_of_year, n = 1) |>
   ungroup() |>
@@ -61,7 +61,7 @@ today.vs.median <- this.year |>
   inner_join(daily.summary.stats |> 
                select(day_of_year, x50))
 median.annotation <- paste("As of", format(last.date, "%B %d, %Y,"),
-                           "Milwaukee has received", round(today.vs.median$cum_precip, 1), 
+                           "McCormick Observatory has received", round(today.vs.median$cum_precip, 1), 
                            "cumulative inches of rain, year-to-date,",
                            "compared with a median of", round(today.vs.median$x50, 1),
                            "in years since 1939.")
