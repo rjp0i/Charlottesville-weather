@@ -1,5 +1,5 @@
 # Multi-Year Precipitation Analysis for McCormick Observatory
-# Last Updated: 2025-05-06
+# Last Updated: 2025-05-06 (Revised for global data handling)
 
 library(ggplot2)
 library(readr)
@@ -7,41 +7,43 @@ library(tidyr)
 library(dplyr)
 library(lubridate)
 library(stringr)
+library(purrr)  # For walk()
 
-generate_precip_plot <- function(target_year = NULL, 
-                                 data_path = "data/GHCN_USC00441593.csv",
+# --- Load Data Globally ---
+ghcn <- read_csv("data/GHCN_USC00441593.csv",
+                show_col_types = FALSE) |>
+  arrange(date) |>
+  group_by(year) |>
+  mutate(
+    PRCP_clean = coalesce(PRCP, 0),
+    cum_precip = cumsum(PRCP_clean)
+  ) |>
+  ungroup()
+
+# --- Define Complete Years ---
+complete_years <- ghcn |> 
+  group_by(year) |> 
+  filter(n() >= 365) |> 
+  pull(year) |> 
+  unique()
+
+# --- Plot Generation Function ---
+generate_precip_plot <- function(target_year, 
                                  output_dir = "graphs/") {
-  
-  # --- Data Loading & Prep ---
-  ghcn <- read_csv(data_path) |>
-    arrange(date) |>
-    group_by(year) |>
-    mutate(
-      PRCP_clean = coalesce(PRCP, 0),
-      cum_precip = cumsum(PRCP_clean)
-    ) |>
-    ungroup()
-  
-  # --- Year Selection ---
-  if(is.null(target_year)) {
-    target_year <- max(ghcn$year)  # Default to current year
-  }
-  
   # --- Data Validation ---
-  year_data <- ghcn |> filter(year == target_year)
-  if(nrow(year_data) < 365) {
-    warning(paste("Insufficient data for", target_year, 
-                  "- found", nrow(year_data), "days. Skipping plot."))
+  if(!target_year %in% complete_years) {
+    warning(paste("Skipping", target_year, 
+                  "- insufficient daily observations"))
     return(NULL)
   }
   
   # --- Data Filtering ---
   this.year <- ghcn |> filter(year == target_year)
-  last.date <- max(this.year$date)  # Last date FOR TARGET YEAR
+  last.date <- max(this.year$date)
   
   past.years <- ghcn |>
     group_by(year) |>
-    filter(n() > 364, year != target_year) |>  # Exclude target year
+    filter(n() > 364, year != target_year) |>
     ungroup()
   
   # --- Summary Stats ---
@@ -57,9 +59,9 @@ generate_precip_plot <- function(target_year = NULL,
       x50 = quantile(cum_precip, 0.5, na.rm = TRUE),
       x60 = quantile(cum_precip, 0.6, na.rm = TRUE),
       x80 = quantile(cum_precip, 0.8, na.rm = TRUE),
-      x95 = quantile(cum_precip, 0.95, na.rm = TRUE)
-    ) |>
-    ungroup()
+      x95 = quantile(cum_precip, 0.95, na.rm = TRUE),
+      .groups = "drop"
+    )
   
   # --- Plot Components ---
   month.breaks <- ghcn |>
@@ -139,20 +141,11 @@ generate_precip_plot <- function(target_year = NULL,
 }
 
 # === Usage Examples ===
-# Generate for specific years
+# Generate for specific year
 generate_precip_plot(2024)
-generate_precip_plot(2023)
-generate_precip_plot(2022)
-generate_precip_plot(2021)
-generate_precip_plot(2020)
-generate_precip_plot(1997)
 
+# Generate for multiple years
+c(2020, 2021, 2022, 2023, 2024, 2015, 1997) |> walk(generate_precip_plot)
 
 # Generate for all complete years
-complete_years <- ghcn |> 
-  group_by(year) |> 
-  filter(n() >= 365) |> 
-  pull(year) |> 
-  unique()
-
-walk(complete_years, ~generate_precip_plot(.x))
+walk(complete_years, generate_precip_plot)
