@@ -37,8 +37,8 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4  
         
-   #   - name: Build temperature graph
-   #     run:  Rscript -e 'source("R/BuildDailyHigh.R")'
+      - name: Build temperature graph
+        run:  Rscript -e 'source("R/MultiYearTemp.R")'
         
       - name: Build precipitation graph
         run:  Rscript -e 'source("R/MultiYearPrecip.R")'
