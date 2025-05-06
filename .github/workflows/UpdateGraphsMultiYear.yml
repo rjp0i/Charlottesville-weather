@@ -40,8 +40,8 @@ jobs:
       - name: Build temperature graph
         run:  Rscript -e 'source("R/MultiYearTemp.R")'
         
-      - name: Build precipitation graph
-        run:  Rscript -e 'source("R/MultiYearPrecip.R")'
+   #   - name: Build precipitation graph
+   #     run:  Rscript -e 'source("R/MultiYearPrecip.R")'
         
       - name: Commit graphs
         uses: stefanzweifel/git-auto-commit-action@v5
