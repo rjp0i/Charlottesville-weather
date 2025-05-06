@@ -140,5 +140,8 @@ generate_temp_plot <- function(target_year, output_dir = "graphs/") {
 }
 
 # Example usage:
-generate_temp_plot(2023)  # Plot for 2023
-generate_temp_plot(1997)  # Plot for 1997
+#generate_temp_plot(2023)  # Plot for 2023
+#generate_temp_plot(1997)  # Plot for 1997
+
+all_years <- sort(unique(ghcn$year))
+purrr::walk(all_years, generate_temp_plot)
