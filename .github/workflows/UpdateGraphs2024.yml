@@ -35,8 +35,8 @@ jobs:
             any::R.utils
       
           
-      - name: Build temperature graph
-        run:  Rscript -e 'source("R/BuildDailyHigh.R")'
+   #   - name: Build temperature graph
+   #     run:  Rscript -e 'source("R/BuildDailyHigh.R")'
         
       - name: Build precipitation graph
         run:  Rscript -e 'source("R/MultiYearPrecip.R")'
