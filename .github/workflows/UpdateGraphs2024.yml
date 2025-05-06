@@ -39,7 +39,7 @@ jobs:
         run:  Rscript -e 'source("R/BuildDailyHigh2024.R")'
         
       - name: Build precipitation graph
-        run:  Rscript -e 'source("R/BuildCumulativePrecipitation2024.R")'
+        run:  Rscript -e 'source("R/MultiYearPrecip.R")'
         
       - name: Commit graphs
         uses: stefanzweifel/git-auto-commit-action@v5
