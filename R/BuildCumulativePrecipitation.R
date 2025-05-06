@@ -9,7 +9,8 @@ ghcn <- read_csv("data/GHCN_USC00441593.csv") |>
   arrange(date) |>  # NEW LINE - ensures chronological order
   group_by(year) |>
   arrange(day_of_year) |>
-  mutate(cum_precip = cumsum(PRCP)) |>
+  mutate(cum_precip = cumsum(coalesce(PRCP, 0))) |>  # Fix NA handling
+  # mutate(cum_precip = cumsum(PRCP)) |>
   ungroup()
 
 year.to.plot <- max(ghcn$year)
