@@ -6,6 +6,7 @@ library(lubridate)
 library(stringr)
 
 ghcn <- read_csv("data/GHCN_USC00441593.csv") |>
+  arrange(date) |>  # NEW LINE - ensures chronological order
   group_by(year) |>
   arrange(day_of_year) |>
   mutate(cum_precip = cumsum(PRCP)) |>
