@@ -5,32 +5,18 @@ library(dplyr)
 library(lubridate)
 library(stringr)
 library(ggrepel)
+library(cowplot)
 
-# Load data once globally
+# Load data globally
 ghcn <- read_csv("data/GHCN_USC00441593.csv", show_col_types = FALSE)
 
-generate_temp_plot <- function(target_year, output_dir = "graphs/") {
-  # Filter for the selected year
-  this.year <- ghcn |> filter(year == target_year)
-  if(nrow(this.year) == 0) {
-    warning(paste("No data for year", target_year))
-    return(NULL)
-  }
-  
-  last.date <- max(this.year$date)
-  is.leap.year <- leap_year(target_year)
-  leap.year.caption <- if (is.leap.year) {
-    "Records for Leap Day are shown."
-  } else {
-    "Records for February 29th are not shown."
-  }
-  
-  # Prepare daily summary stats for all other years
-  daily.summary.stats <- ghcn |>
-    filter(year != target_year) |>
-    select(month, day, PRCP, TMAX, TMIN) |>
-    pivot_longer(cols = -c(month, day)) |>
-    group_by(month, day, name) |>
+# Helper function to get daily summary stats for a variable
+get_daily_summary_stats <- function(var, exclude_year) {
+  ghcn |>
+    filter(year != exclude_year) |>
+    select(month, day, !!sym(var)) |>
+    rename(value = !!sym(var)) |>
+    group_by(month, day) |>
     summarise(
       max = max(value, na.rm = TRUE),
       min = min(value, na.rm = TRUE),
@@ -41,56 +27,85 @@ generate_temp_plot <- function(target_year, output_dir = "graphs/") {
       x80 = quantile(value, 0.8, na.rm = TRUE),
       x95 = quantile(value, 0.95, na.rm = TRUE),
       .groups = "drop"
-    ) |>
-    mutate(
-      date = as.Date(paste(target_year, month, day, sep = "-")),
-      day_of_year = yday(date)
     )
-  
-  # Remove Feb 29 if not a leap year
-  if(!is.leap.year){
-    daily.summary.stats <- daily.summary.stats |> filter(!(month == "02" & day == "29"))
-  }
-  
-  # Month breaks for the x-axis
-  month.breaks <- ghcn |>
-    filter(year == 2019) |>  # Use any full year for month positions
-    group_by(month) |>
-    slice_min(order_by = day_of_year, n = 1) |>
-    ungroup() |>
-    select(month, day_of_year) |>
-    mutate(month_name = month.abb[1:n()])
-  
-  # Identify record status for this year
-  record.status.this.year <- this.year |>
-    select(month, day, PRCP, TMAX, TMIN) |>
-    pivot_longer(cols = -c(month, day), values_to = "this_year") |>
-    inner_join(daily.summary.stats |> select(-starts_with("x")), by = c("month", "day", "name")) |>
+}
+
+# Helper function to get record status for a variable
+get_record_status <- function(this_year, daily_stats, var) {
+  this_year |>
+    select(month, day, !!sym(var)) |>
+    rename(this_year = !!sym(var)) |>
+    inner_join(daily_stats, by = c("month", "day")) |>
     mutate(record_status = case_when(
-      this_year > max ~ "max",
-      this_year < min ~ "min",
+      this_year > max ~ paste0("record_high_", tolower(var)),
+      this_year < min ~ paste0("record_low_", tolower(var)),
       TRUE ~ "none"
     )) |>
     filter(record_status != "none")
-  
-  # Build the plot for TMAX
-  max.graph <- daily.summary.stats |>
-    filter(name == "TMAX") |>
+}
+
+# Plotting function for a single variable (TMAX or TMIN)
+plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
+  is.leap.year <- leap_year(target_year)
+  this_year <- ghcn |> filter(year == target_year)
+  daily_stats <- get_daily_summary_stats(var, target_year) |>
+    mutate(date = as.Date(paste(target_year, month, day, sep = "-")),
+           day_of_year = yday(date))
+  if(!is.leap.year){
+    daily_stats <- daily_stats |> filter(!(month == "02" & day == "29"))
+  }
+  record_status <- get_record_status(this_year, daily_stats, var)
+  # Color and shape mappings
+  color_map <- c(
+    "record_high_tmax" = "#d1495b",
+    "record_low_tmax"  = "#6baed6",
+    "record_high_tmin" = "#fd8d3c",
+    "record_low_tmin"  = "#3182bd"
+  )
+  shape_map <- c(
+    "record_high_tmax" = 17,
+    "record_low_tmax"  = 25,
+    "record_high_tmin" = 24,
+    "record_low_tmin"  = 19
+  )
+  # Title and subtitle
+  plot_title <- if (var == "TMAX") {
+    "Daily High Temperature"
+  } else {
+    "Daily Low Temperature"
+  }
+  plot_subtitle <- paste0(
+    "Line = ", ifelse(var == "TMAX", "daily high", "daily low"),
+    "s for ", target_year, ". ",
+    "Colored symbols: red = record high max, light blue = record low max, ",
+    "orange = record high min, blue = record low min."
+  )
+  # Build plot
+  p <- daily_stats |>
     ggplot(aes(x = date)) +
     geom_ribbon(aes(ymin = min, ymax = max), fill = "#bdc9e1") +
     geom_ribbon(aes(ymin = x5, ymax = x95), fill = "#74a9cf") +
     geom_ribbon(aes(ymin = x20, ymax = x80), fill = "#2b8cbe") +
     geom_ribbon(aes(ymin = x40, ymax = x60), fill = "#045a8d") +
     geom_hline(yintercept = seq(-10, 100, 10), color = "white", lwd = 0.1) +
-    geom_line(data = this.year, aes(y = TMAX), lwd = 1) +
+    geom_line(data = this_year, aes(y = !!sym(var)), lwd = 1) +
     geom_point(
-      data = filter(record.status.this.year, name == "TMAX", record_status == "max"),
-      aes(y = this_year), color = "red"
+      data = record_status,
+      aes(y = this_year, color = record_status, shape = record_status),
+      size = 2
     ) +
-    geom_point(
-      data = filter(record.status.this.year, name == "TMAX", record_status == "min"),
-      aes(y = this_year), color = "blue"
+    scale_color_manual(
+      name = "Record Types",
+      values = color_map,
+      breaks = names(color_map)
     ) +
+    scale_shape_manual(
+      name = "Record Types",
+      values = shape_map,
+      breaks = names(shape_map)
+    ) +
+    guides(color = guide_legend(override.aes = list(size = 3)),
+           shape = guide_legend(override.aes = list(size = 3))) +
     scale_y_continuous(
       breaks = seq(-10, 100, 10),
       labels = scales::unit_format(suffix = "°"),
@@ -100,48 +115,68 @@ generate_temp_plot <- function(target_year, output_dir = "graphs/") {
     ) +
     scale_x_date(
       expand = expansion(0),
-      breaks = unique(daily.summary.stats$date[daily.summary.stats$day == "15"]),
+      breaks = unique(daily_stats$date[daily_stats$day == "15"]),
       labels = scales::label_date(format = "%b"),
-      minor_breaks = unique(daily.summary.stats$date[daily.summary.stats$day == "01"]),
+      minor_breaks = unique(daily_stats$date[daily_stats$day == "01"]),
       name = NULL
     ) +
     labs(
-      title = "Daily High Temperature at Charlottesville's McCormick Observatory",
-      subtitle = paste(
-        "The line shows daily highs for", target_year, ".",
-        "The ribbons cover the historical range. The last date shown is",
-        format(last.date, "%b %d, %Y.")
-      ),
-      caption = paste(
-        "Records begin on January 1, 1893.",
-        "This graph was last updated on", format(Sys.Date(), "%B %d, %Y."),
-        leap.year.caption
-      )
+      title = plot_title,
+      subtitle = plot_subtitle
     ) +
     theme(
       panel.background = element_blank(),
       panel.border = element_blank(),
       panel.grid.major.y = element_blank(),
-      panel.grid.minor.y = element_blank(),
-      panel.grid.minor.x = element_line(linetype = "dotted", linewidth = 0.2, colour = "gray"),
+      panel.grid.minor.y = element_line(linetype = "dotted", linewidth = 0.2, colour = "gray"),
       panel.grid.major.x = element_blank(),
       plot.background = element_rect(fill = "linen", colour = "linen"),
       plot.title.position = "plot",
-      plot.title = element_text(face = "bold", size = 16),
-      axis.ticks = element_blank()
+      plot.title = element_text(face = "bold", size = 14, color = ifelse(var == "TMAX", "#d1495b", "#3182bd")),
+      axis.ticks = element_blank(),
+      axis.text.x = if (show_x_axis) element_text() else element_blank()
     )
-  
-  # Save plot
+  return(p)
+}
+
+# Combined plot function for a year
+generate_combined_temp_plot <- function(target_year, output_dir = "graphs/") {
+  # Top: TMAX, Bottom: TMIN
+  p_max <- plot_temp_panel(target_year, "TMAX", show_x_axis = FALSE)
+  p_min <- plot_temp_panel(target_year, "TMIN", show_x_axis = TRUE)
+  # Title
+  title <- ggdraw() + 
+    draw_label(
+      paste("Temperature Records at McCormick Observatory -", target_year),
+      fontface = "bold",
+      size = 18
+    )
+  # Stack plots
+  combined <- plot_grid(
+    p_max, p_min,
+    ncol = 1,
+    align = "v",
+    labels = c("A) Highs", "B) Lows"),
+    label_size = 12,
+    rel_heights = c(1, 1)
+  )
+  final_plot <- plot_grid(
+    title,
+    combined,
+    ncol = 1,
+    rel_heights = c(0.12, 1)
+  )
+  # Save
   if(!dir.exists(output_dir)) dir.create(output_dir)
-  output_file <- paste0(output_dir, "DailyHighTemp_USC00441593_", target_year, ".png")
-  ggsave(output_file, plot = max.graph, width = 8, height = 4)
-  
-  return(max.graph)
+  output_file <- paste0(output_dir, "Temp_", target_year, ".png")
+  ggsave(output_file, final_plot, width = 10, height = 8)
+  return(final_plot)
 }
 
 # Example usage:
-#generate_temp_plot(2023)  # Plot for 2023
-#generate_temp_plot(1997)  # Plot for 1997
+generate_combined_temp_plot(2023)
+generate_combined_temp_plot(1997)
 
-all_years <- sort(unique(ghcn$year))
-purrr::walk(all_years, generate_temp_plot)
+# Batch for all years:
+# all_years <- sort(unique(ghcn$year))
+# purrr::walk(all_years, generate_combined_temp_plot)
