@@ -23,6 +23,7 @@ jobs:
         with:
           packages: |
             any::ggplot2 
+            any::cowplot
             any::readr
             any::tidyr
             any::dplyr
