@@ -18,7 +18,7 @@ ghcn <- read_csv("data/GHCN_USC00441593.csv") |>
 #                       labels = c("Complete", "1-5 days", "6-18 days", "Incomplete"))
 #  ) |>
 #  ggplot(aes(x = year, y = annual_avg, color = completeness)) +
-$  geom_point()
+#  geom_point()
 
 annual_stats <- ghcn |>
   group_by(year) |>
