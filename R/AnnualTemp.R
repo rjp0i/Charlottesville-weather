@@ -1,7 +1,7 @@
 library(readr)
 library(dplyr)
 library(lubridate)
-library(ggplot2)
+library(ggplot2) 
 
 # Set your missing day threshold (e.g., max 5 missing days)
 max_missing_days <- 20
