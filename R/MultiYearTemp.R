@@ -10,7 +10,7 @@ library(cowplot)
 # Load data globally
 ghcn <- read_csv("data/GHCN_USC00441593.csv", show_col_types = FALSE)
 
-# Helper function to get daily summary stats for a variable
+# Helper: summary stats for a variable
 get_daily_summary_stats <- function(var, exclude_year) {
   ghcn |>
     filter(year != exclude_year) |>
@@ -30,15 +30,17 @@ get_daily_summary_stats <- function(var, exclude_year) {
     )
 }
 
-# Helper function to get record status for a variable
+# Helper: record status for a variable
 get_record_status <- function(this_year, daily_stats, var) {
   this_year |>
     select(month, day, !!sym(var)) |>
     rename(this_year = !!sym(var)) |>
     inner_join(daily_stats, by = c("month", "day")) |>
     mutate(record_status = case_when(
-      this_year > max ~ paste0("record_high_", tolower(var)),
-      this_year < min ~ paste0("record_low_", tolower(var)),
+      var == "TMAX" & this_year > max ~ "record_high_tmax",
+      var == "TMAX" & this_year < min ~ "record_low_tmax",
+      var == "TMIN" & this_year > max ~ "record_high_tmin",
+      var == "TMIN" & this_year < min ~ "record_low_tmin",
       TRUE ~ "none"
     )) |>
     filter(record_status != "none")
@@ -63,10 +65,10 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
     "record_low_tmin"  = "#3182bd"
   )
   shape_map <- c(
-    "record_high_tmax" = 17,
-    "record_low_tmax"  = 25,
-    "record_high_tmin" = 24,
-    "record_low_tmin"  = 19
+    "record_high_tmax" = 24,  # Filled triangle up
+    "record_low_tmax"  = 25,  # Filled triangle down
+    "record_high_tmin" = 24,  # Filled triangle up
+    "record_low_tmin"  = 21   # Filled circle
   )
   # Title and subtitle
   plot_title <- if (var == "TMAX") {
@@ -91,10 +93,15 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
     geom_line(data = this_year, aes(y = !!sym(var)), lwd = 1) +
     geom_point(
       data = record_status,
-      aes(y = this_year, color = record_status, shape = record_status),
-      size = 2
+      aes(y = this_year, color = record_status, fill = record_status, shape = record_status),
+      size = 3
     ) +
     scale_color_manual(
+      name = "Record Types",
+      values = color_map,
+      breaks = names(color_map)
+    ) +
+    scale_fill_manual(
       name = "Record Types",
       values = color_map,
       breaks = names(color_map)
@@ -104,8 +111,11 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
       values = shape_map,
       breaks = names(shape_map)
     ) +
-    guides(color = guide_legend(override.aes = list(size = 3)),
-           shape = guide_legend(override.aes = list(size = 3))) +
+    guides(
+      color = guide_legend(override.aes = list(size = 4, fill = color_map)),
+      shape = guide_legend(override.aes = list(size = 4, fill = color_map)),
+      fill = "none"
+    ) +
     scale_y_continuous(
       breaks = seq(-10, 100, 10),
       labels = scales::unit_format(suffix = "°"),
@@ -134,7 +144,11 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
       plot.title.position = "plot",
       plot.title = element_text(face = "bold", size = 14, color = ifelse(var == "TMAX", "#d1495b", "#3182bd")),
       axis.ticks = element_blank(),
-      axis.text.x = if (show_x_axis) element_text() else element_blank()
+      axis.text.x = if (show_x_axis) element_text() else element_blank(),
+      legend.position = c(0.5, 0.85),
+      legend.justification = c(0.5, 1),
+      legend.box.background = element_rect(fill = "white", colour = "gray50"),
+      legend.box.margin = margin(6, 6, 6, 6)
     )
   return(p)
 }
@@ -151,13 +165,11 @@ generate_combined_temp_plot <- function(target_year, output_dir = "graphs/") {
       fontface = "bold",
       size = 18
     )
-  # Stack plots
+  # Stack plots (no subplot labels)
   combined <- plot_grid(
     p_max, p_min,
     ncol = 1,
     align = "v",
-    labels = c("A) Highs", "B) Lows"),
-    label_size = 12,
     rel_heights = c(1, 1)
   )
   final_plot <- plot_grid(
@@ -168,7 +180,7 @@ generate_combined_temp_plot <- function(target_year, output_dir = "graphs/") {
   )
   # Save
   if(!dir.exists(output_dir)) dir.create(output_dir)
-  output_file <- paste0(output_dir, "Temp_", target_year, ".png")
+  output_file <- paste0(output_dir, "CombinedTemp_USC00441593_", target_year, ".png")
   ggsave(output_file, final_plot, width = 10, height = 8)
   return(final_plot)
 }
