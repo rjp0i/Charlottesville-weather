@@ -114,7 +114,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
     guides(
       color = guide_legend(override.aes = list(size = 4, fill = color_map, shape = shape_map)),
       #shape = guide_legend(override.aes = list(size = 4, fill = color_map)),
-      fill = "none"
+      fill = "none",
       shape = "none"
     ) +
     scale_y_continuous(
