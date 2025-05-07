@@ -3,7 +3,7 @@ library(lubridate)
 library(ggplot2)
 
 # Set your missing day threshold (e.g., max 5% missing days = ~18 days)
-max_missing_days <- 18
+max_missing_days <- 5
 
 ghcn <- read_csv("data/GHCN_USC00441593.csv") |>
   mutate(
@@ -11,6 +11,14 @@ ghcn <- read_csv("data/GHCN_USC00441593.csv") |>
     year = year(date),
     daily_avg = (TMAX + TMIN)/2  # Conventional daily average
   )
+#ghcn |>
+#  mutate(
+#    completeness = cut(missing_days,
+#                       breaks = c(-1, 0, 5, 18, 365),
+#                       labels = c("Complete", "1-5 days", "6-18 days", "Incomplete"))
+#  ) |>
+#  ggplot(aes(x = year, y = annual_avg, color = completeness)) +
+$  geom_point()
 
 annual_stats <- ghcn |>
   group_by(year) |>
