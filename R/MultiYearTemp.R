@@ -68,7 +68,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
     "record_high_tmax" = 24,  # Filled triangle up
     "record_low_tmax"  = 25,  # Filled triangle down
     "record_high_tmin" = 24,  # Filled triangle up
-    "record_low_tmin"  = 21   # Filled circle
+    "record_low_tmin"  = 25   # Filled triangle down
   )
   # Title and subtitle
   plot_title <- if (var == "TMAX") {
@@ -78,9 +78,8 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
   }
   plot_subtitle <- paste0(
     "Line = ", ifelse(var == "TMAX", "daily high", "daily low"),
-    "s for ", target_year, ". ",
-    "Colored symbols: red = record high max, light blue = record low max, ",
-    "orange = record high min, blue = record low min."
+    "s for ", target_year, ". The ribbons show the historical range. The last date shown is Dec 31, ", target_year, ".",
+    ""
   )
   # Build plot
   p <- daily_stats |>
@@ -146,7 +145,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
       axis.ticks = element_blank(),
       axis.text.x = if (show_x_axis) element_text() else element_blank(),
       legend.position = "inside",
-      legend.position.inside = c(0.5, 0.5),
+      legend.position.inside = c(0.5, 0.35),
       legend.justification = c(0.5, 1),
       legend.box.background = element_rect(fill = "white", colour = "gray50"),
       legend.box.margin = margin(6, 6, 6, 6)
