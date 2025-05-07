@@ -112,10 +112,9 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
       breaks = names(shape_map)
     ) +
     guides(
-      color = guide_legend(override.aes = list(size = 4, fill = color_map, shape = shape_map)),
-      #shape = guide_legend(override.aes = list(size = 4, fill = color_map)),
+      color = guide_legend(override.aes = list(size = 4, fill = "white")),
       fill = "none",
-      shape = "none"
+      shape = guide_legend(override.aes = list(size = 4))
     ) +
     scale_y_continuous(
       breaks = seq(-10, 100, 10),
@@ -146,8 +145,9 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
       plot.title = element_text(face = "bold", size = 14, color = ifelse(var == "TMAX", "#d1495b", "#3182bd")),
       axis.ticks = element_blank(),
       axis.text.x = if (show_x_axis) element_text() else element_blank(),
+      legend.position = "inside",
       legend.position.inside = c(0.5, 0.85),
-      legend.justification.inside = c(0.5, 1),
+      legend.justification = c(0.5, 1),
       legend.box.background = element_rect(fill = "white", colour = "gray50"),
       legend.box.margin = margin(6, 6, 6, 6)
     )
