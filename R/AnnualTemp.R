@@ -4,7 +4,7 @@ library(lubridate)
 library(ggplot2) 
 
 # Set your missing day threshold (e.g., max 5 missing days)
-max_missing_days <- 50
+max_missing_days <- 100
 
 # Load and process data
 ghcn <- read_csv("data/GHCN_USC00441593.csv") |>
