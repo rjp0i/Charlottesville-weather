@@ -1,6 +1,6 @@
 on:
   schedule:
-    - cron: "0 19 * * *"
+   # - cron: "0 19 * * *"
   workflow_dispatch:
 
 name: McCormick Observatory weather update
@@ -23,6 +23,7 @@ jobs:
         with:
           packages: |
             any::ggplot2 
+            any::cowplot
             any::readr
             any::tidyr
             any::dplyr
@@ -33,15 +34,18 @@ jobs:
             any::here
             any::data.table
             any::R.utils
-            
+      
       - name: Check out repository
-        uses: actions/checkout@v4 
-          
-      - name: Build temperature graph
-        run:  Rscript -e 'source("R/BuildDailyHigh.R")'
+        uses: actions/checkout@v4  
         
-      - name: Build precipitation graph
-        run:  Rscript -e 'source("R/BuildCumulativePrecipitation.R")'
+      - name: Build temperature graph
+        run:  Rscript -e 'source("R/MultiYearTemp.R")'
+        
+   #   - name: Build precipitation graph
+   #     run:  Rscript -e 'source("R/MultiYearPrecip.R")'
+
+      - name: Annual Temperature graph
+        run: Rscript -e 'source("R/AnnualTemp.R")'
         
       - name: Commit graphs
         uses: stefanzweifel/git-auto-commit-action@v5
