@@ -68,7 +68,7 @@ get_legend_stats <- function() {
 
 # Plotting function for a single variable (TMAX or TMIN)
 plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
-  is.leap.year <- leap_year(target_year)
+  is.leap.year <- lubridate::leap_year(target_year)
   this_year <- ghcn |> filter(year == target_year)
   daily_stats <- get_daily_summary_stats(var, target_year) |>
     mutate(date = as.Date(paste(target_year, month, day, sep = "-")),
@@ -87,93 +87,34 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
     "record_high_tmax" = 24,  # Filled triangle up
     "record_low_tmax"  = 25,  # Filled triangle down
     "record_high_tmin" = 24,  # Filled triangle up
-    "record_low_tmin"  = 25   # Filled triangle down (CHANGED from 21)
+    "record_low_tmin"  = 25   # Filled triangle down
   )
   plot_title <- if (var == "TMAX") "Daily High Temperature" else "Daily Low Temperature"
   plot_subtitle <- paste0(
     "Line = ", ifelse(var == "TMAX", "daily high", "daily low"),
-    "s for ", target_year, ". The ribbons show the historical range. The last date shown is Dec 31, ", target_year, ".",
-    ""
+    "s for ", target_year, ". ",
+    "Colored symbols: red = record high max, light blue = record low max, ",
+    "orange = record high min, blue = record low min."
   )
 
-  # --- Ribbon Legend Integration ---
-  legend_stats <- get_legend_stats()
-  x_range <- range(daily_stats$date, na.rm = TRUE)
-  y_range <- range(c(daily_stats$min, daily_stats$max), na.rm = TRUE)
-  #legend_x_center <- x_range[1] + 0.5 * as.numeric(diff(x_range))
-  #legend_y_center <- y_range[1] + 0.10 * diff(y_range)   # LOWERED from 0.35 to 0.10
-  #legend_width_days <- 25
-  #legend_x <- seq(legend_x_center - legend_width_days/2, legend_x_center + legend_width_days/2, by = 1)
-  #legend_df <- data.frame(
-  #  date = legend_x,
-  #  min = legend_stats$min,
-  #  x5 = legend_stats$x5,
-  #  x20 = legend_stats$x20,
-  #  x40 = legend_stats$x40,
-  #  x60 = legend_stats$x60,
-  #  x80 = legend_stats$x80,
-  #  x95 = legend_stats$x95,
-  #  max = legend_stats$max
-  #)
-  #legend_line_df <- data.frame(
-  #  date = legend_x,
-  #  temp = legend_stats$x40
-  #)
-  #legend_labels <- tibble(
-  #  date = c(legend_x[1], legend_x[length(legend_x)]),
-  #  value = c(legend_stats$min, legend_stats$max),
-  #  label = c("min", "max")
-  #) %>%
-  #  bind_rows(
-  #    tibble(
-  #      date = legend_x[length(legend_x)],
-  #      value = c(legend_stats$x5, legend_stats$x20, legend_stats$x40, legend_stats$x60, legend_stats$x80, legend_stats$x95),
-  #      label = c("5th percentile", "20th", "40th", "60th", "80th", "95th")
-  #    )
-  #  )
-# Calculate ranges for legend scaling
-x_range <- range(daily_stats$date, na.rm = TRUE)
-y_range <- range(c(daily_stats$min, daily_stats$max), na.rm = TRUE)
+  # --- Ribbon Legend Integration using daily percentiles ---
+  legend_days <- 170:200  # Use a block in midsummer for the legend
+  legend_df <- daily_stats %>%
+    filter(day_of_year %in% legend_days) %>%
+    mutate(date = date + 20)  # shift legend rightward if needed
 
-legend_x_center <- x_range[1] + 0.5 * as.numeric(diff(x_range))
-legend_width_days <- 25
-legend_x <- seq(legend_x_center - legend_width_days/2, legend_x_center + legend_width_days/2, by = 1)
+  legend_line_df <- legend_df %>%
+    select(date, x40)
 
-legend_box_height <- 0.15 * diff(y_range)  # Legend covers 15% of y-range
-legend_center <- y_range[1] + 0.10 * diff(y_range)  # 10% up from bottom
-
-legend_vals <- as.numeric(legend_stats)
-legend_scaled <- (legend_vals - min(legend_vals)) / (max(legend_vals) - min(legend_vals))
-legend_y <- legend_center + (legend_scaled - 0.5) * legend_box_height
-names(legend_y) <- names(legend_stats)
-
-legend_df <- data.frame(
-  date = legend_x,
-  min = legend_y["min"],
-  x5 = legend_y["x5"],
-  x20 = legend_y["x20"],
-  x40 = legend_y["x40"],
-  x60 = legend_y["x60"],
-  x80 = legend_y["x80"],
-  x95 = legend_y["x95"],
-  max = legend_y["max"]
-)
-legend_line_df <- data.frame(
-  date = legend_x,
-  temp = legend_y["x40"]
-)
-legend_labels <- tibble(
-  date = c(legend_x[1], legend_x[length(legend_x)]),
-  value = c(legend_y["min"], legend_y["max"]),
-  label = c("min", "max")
-) %>%
-  bind_rows(
-    tibble(
-      date = legend_x[length(legend_x)],
-      value = c(legend_y["x5"], legend_y["x20"], legend_y["x40"], legend_y["x60"], legend_y["x80"], legend_y["x95"]),
-      label = c("5th percentile", "20th", "40th", "60th", "80th", "95th")
-    )
-  )
+  legend_labels <- legend_df %>%
+    filter(day_of_year == max(legend_days)) %>%
+    pivot_longer(cols = c(min, x5, x20, x40, x60, x80, x95, max), names_to = "level", values_to = "value") %>%
+    mutate(label = case_when(
+      level == "min" ~ "min",
+      level == "max" ~ "max",
+      level == "x95" ~ "95th percentile",
+      TRUE ~ paste0(str_remove(level, "x"), "th percentile")
+    ))
 
   # Build plot
   p <- daily_stats |>
@@ -219,19 +160,18 @@ legend_labels <- tibble(
       title = plot_title,
       subtitle = plot_subtitle
     ) +
-    # --- Draw legend in empty region (mid-summer, low temp) ---
+    # --- Draw legend in mid-summer region ---
     geom_ribbon(data = legend_df, aes(x = date, ymin = min, ymax = max), fill = "#bdc9e1", inherit.aes = FALSE) +
     geom_ribbon(data = legend_df, aes(x = date, ymin = x5, ymax = x95), fill = "#74a9cf", inherit.aes = FALSE) +
     geom_ribbon(data = legend_df, aes(x = date, ymin = x20, ymax = x80), fill = "#2b8cbe", inherit.aes = FALSE) +
     geom_ribbon(data = legend_df, aes(x = date, ymin = x40, ymax = x60), fill = "#045a8d", inherit.aes = FALSE) +
-    geom_line(data = legend_line_df, aes(x = date, y = temp), color = "black", lwd = 1, inherit.aes = FALSE) +
-    ggrepel::geom_text_repel(
+    geom_line(data = legend_line_df, aes(x = date, y = x40), color = "black", lwd = 1, inherit.aes = FALSE) +
+    geom_text(
       data = legend_labels,
-      aes(x = date, y = value, label = label),
-      inherit.aes = FALSE,
-      min.segment.length = 0, size = 5, direction = "y", hjust = 0, nudge_x = 2
+      aes(x = max(legend_df$date) + 5, y = value, label = label),
+      hjust = 0, size = 3, fontface = "plain", inherit.aes = FALSE
     ) +
-    annotate("text", x = legend_x_center, y = legend_stats$max, label = "Legend", hjust = 0.35, vjust = 0, fontface = "bold", size = 4) +
+    annotate("text", x = min(legend_df$date), y = max(legend_df$max), label = "Legend", hjust = 0, vjust = 1, fontface = "bold", size = 4) +
     theme(
       panel.background = element_blank(),
       panel.border = element_blank(),
@@ -247,6 +187,9 @@ legend_labels <- tibble(
     )
   return(p)
 }
+
+
+
 
 # Combined plot function for a year
 generate_combined_temp_plot <- function(target_year, output_dir = "graphs/") {
