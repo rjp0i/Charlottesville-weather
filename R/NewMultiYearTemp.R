@@ -235,11 +235,24 @@ legend_record_points <- tibble(
       aes(x = date, y = temp, shape = record_status, fill = record_status),
       color = "black", size = 3, inherit.aes = FALSE
     ) +
+    # For record high (red, at upper right)
     geom_text(
-      data = legend_record_points,
-      aes(x = date, y = temp, label = label),
-      hjust = 0, vjust = c(-1, 2), size = 4, fontface = "plain", inherit.aes = FALSE
-    ) +
+     data = filter(legend_record_points, record_status == "record_high_tmax"),
+     aes(x = date + 5, y = temp + 5, label = label),
+     hjust = 0, size = 4, fontface = "plain"
+   ) +
+   # For record low (blue, at lower right)
+   geom_text(
+     data = filter(legend_record_points, record_status == "record_low_tmax"),
+     aes(x = date + 5, y = temp - 5, label = label),
+     hjust = 0, size = 4, fontface = "plain"
+   )
+  # Old code, trying to place both record points at one time
+    #geom_text(
+    #  data = legend_record_points,
+    #  aes(x = date, y = temp, label = label),
+    #  hjust = 0, vjust = c(-1, 2), size = 4, fontface = "plain", inherit.aes = FALSE
+    #) +
     ggrepel::geom_text_repel(
       data = filter(legend.labels, filter_day == max(filter_day)),
       aes(x = date, y = value, label = label),
@@ -248,7 +261,7 @@ legend_record_points <- tibble(
       data = filter(legend.labels, filter_day == min(filter_day)),
       aes(x = date, y = value, label = label),
       min.segment.length = 0, size = 4, direction = "y", hjust = 1, nudge_x = -5, inherit.aes = FALSE) +
-    annotate("text", x = min(legend_df$date), y = max(legend_df$max), label = "Legend", hjust = 0, vjust = 1, fontface = "bold", size = 5) +
+    #annotate("text", x = min(legend_df$date), y = max(legend_df$max), label = "Legend", hjust = 0, vjust = 1, fontface = "bold", size = 5) +
     theme(
       panel.background = element_blank(),
       panel.border = element_blank(),
