@@ -102,7 +102,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
   legend_x_center <- x_range[1] + 0.5 * as.numeric(diff(x_range))
   legend_x <- seq(legend_x_center - (legend_width_days-1)/2, legend_x_center + (legend_width_days-1)/2, by = 1)
 
-  legend_height <- 0.25 * diff(y_range)   # Taller legend box
+  legend_height <- 0.35 * diff(y_range)   # Taller legend box
   legend_top <- y_range[1] + 0.35 * diff(y_range)   # Lower on plot
   legend_bottom <- legend_top - legend_height
 
@@ -212,7 +212,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
       aes(x = date, y = value, label = label),
       hjust = 0, vjust = c(-1, 2), size = 4, fontface = "plain", inherit.aes = FALSE
     ) +
-    annotate("text", x = min(legend_x), y = legend_top, label = "Legend", hjust = 0, vjust = 1, fontface = "bold", size = 5) +
+    annotate("text", x = min(legend_x), y = legend_top+0.1, label = "Legend", hjust = 0, vjust = 1, fontface = "bold", size = 5) +
     theme(
       panel.background = element_blank(),
       panel.border = element_blank(),
