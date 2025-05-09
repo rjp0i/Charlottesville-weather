@@ -111,63 +111,81 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE, y_shi
     )
 
   # Hand-crafted, plausible fake data for the solid black line
-  legend.line.df <- tibble(
-    day_of_year = legend_days,
-    temp = case_when(
-      day_of_year == 165 ~ legend_df$x40[legend_df$day_of_year == 165],
-      day_of_year == 168 ~ legend_df$x40[legend_df$day_of_year == 165] + 3,
-      day_of_year == 172 ~ legend_df$x40[legend_df$day_of_year == 165] - 4,
-      day_of_year == 177 ~ legend_df$min[legend_df$day_of_year == 177] - 1,
-      day_of_year == 180 ~ legend_df$x20[legend_df$day_of_year == 180] - 1,
-      day_of_year == 182 ~ legend_df$x60[legend_df$day_of_year == 182] + 1,
-      day_of_year == 185 ~ legend_df$x60[legend_df$day_of_year == 185] - 6,
-      day_of_year == 189 ~ legend_df$max[legend_df$day_of_year == 189] + 1,
-      day_of_year == 194 ~ legend_df$x60[legend_df$day_of_year == 194],
-      day_of_year == 198 ~ legend_df$x40[legend_df$day_of_year == 198],
-      day_of_year == 201 ~ legend_df$x60[legend_df$day_of_year == 201],
-      TRUE ~ NA_real_
-    )
-  ) %>%
-    filter(!is.na(temp))
+  # --- Legend block construction ---
 
-  # Labels for percentiles
-  legend.labels <- legend_df %>%
-    pivot_longer(cols = c(max, min, starts_with("x")),
-                 names_to = "levels") %>%
-    mutate(label = case_when(
-      levels == "max" ~ "max",
-      levels == "min" ~ "min",
-      levels == "x95" ~ "95th percentile of past years",
-      TRUE ~ paste0(str_sub(levels, 2, -1), "th")
-    )) %>%
-    mutate(filter_day = ifelse(
-      levels %in% c("max", "x80", "x40", "x5"),
-      min(day_of_year),
-      max(day_of_year)
-    )) %>%
-    filter(day_of_year == filter_day)
+legend_days <- 165:201
+origin_date <- as.Date(paste0(target_year, "-01-01"))
 
-  # Points for record high/low
-  legend_record_points <- tibble(
-    day_of_year = c(177, 189),
-    temp = c(
-      legend.line.df$temp[legend.line.df$day_of_year == 177],
-      legend.line.df$temp[legend.line.df$day_of_year == 189]
-    ),
-    record_status = c(
-      if (var == "TMAX") "record_low_tmax" else "record_low_tmin",
-      if (var == "TMAX") "record_high_tmax" else "record_high_tmin"
-    ),
-    label = c(
-      if (var == "TMAX") "all-time record lowest daily high set this year" else "all-time record lowest daily low set this year",
-      if (var == "TMAX") "all-time record daily high set this year" else "all-time record daily low set this year"
-    )
+# 1. The ribbon data for the legend (shifted below the main data)
+legend.df <- daily_stats %>%
+  filter(day_of_year %in% legend_days) %>%
+  mutate(
+    max = max - y_shift,
+    min = min - y_shift,
+    x5 = x5 - y_shift,
+    x20 = x20 - y_shift,
+    x40 = x40 - y_shift,
+    x60 = x60 - y_shift,
+    x80 = x80 - y_shift,
+    x95 = x95 - y_shift,
+    date = origin_date + day_of_year - 1
   )
 
-origin_date <- as.Date(paste0(target_year, "-01-01"))
-legend.line.df <- legend.line.df %>%
+# 2. Hand-crafted, plausible fake data for the solid black line
+legend.line.df <- tibble(
+  day_of_year = legend_days,
+  temp = case_when(
+    day_of_year == 165 ~ legend.df$x40[legend.df$day_of_year == 165],
+    day_of_year == 168 ~ legend.df$x40[legend.df$day_of_year == 165] + 3,
+    day_of_year == 172 ~ legend.df$x40[legend.df$day_of_year == 165] - 4,
+    day_of_year == 177 ~ legend.df$min[legend.df$day_of_year == 177] - 1,
+    day_of_year == 180 ~ legend.df$x20[legend.df$day_of_year == 180] - 1,
+    day_of_year == 182 ~ legend.df$x60[legend.df$day_of_year == 182] + 1,
+    day_of_year == 185 ~ legend.df$x60[legend.df$day_of_year == 185] - 6,
+    day_of_year == 189 ~ legend.df$max[legend.df$day_of_year == 189] + 1,
+    day_of_year == 194 ~ legend.df$x60[legend.df$day_of_year == 194],
+    day_of_year == 198 ~ legend.df$x40[legend.df$day_of_year == 198],
+    day_of_year == 201 ~ legend.df$x60[legend.df$day_of_year == 201],
+    TRUE ~ NA_real_
+  )
+) %>%
+  filter(!is.na(temp)) %>%
   mutate(date = origin_date + day_of_year - 1)
-legend_record_points <- legend_record_points %>%
+
+# 3. Labels for percentiles (with date column)
+legend.labels <- legend.df %>%
+  pivot_longer(cols = c(max, min, starts_with("x")),
+               names_to = "levels") %>%
+  mutate(label = case_when(
+    levels == "max" ~ "max",
+    levels == "min" ~ "min",
+    levels == "x95" ~ "95th percentile of past years",
+    TRUE ~ paste0(str_sub(levels, 2, -1), "th")
+  )) %>%
+  mutate(filter_day = ifelse(
+    levels %in% c("max", "x80", "x40", "x5"),
+    min(day_of_year),
+    max(day_of_year)
+  )) %>%
+  filter(day_of_year == filter_day) %>%
+  mutate(date = origin_date + day_of_year - 1)
+
+# 4. Points for record high/low (with date column)
+legend_record_points <- tibble(
+  day_of_year = c(177, 189),
+  temp = c(
+    legend.line.df$temp[legend.line.df$day_of_year == 177],
+    legend.line.df$temp[legend.line.df$day_of_year == 189]
+  ),
+  record_status = c(
+    if (var == "TMAX") "record_low_tmax" else "record_low_tmin",
+    if (var == "TMAX") "record_high_tmax" else "record_high_tmin"
+  ),
+  label = c(
+    if (var == "TMAX") "all-time record lowest daily high set this year" else "all-time record lowest daily low set this year",
+    if (var == "TMAX") "all-time record daily high set this year" else "all-time record daily low set this year"
+  )
+) %>%
   mutate(date = origin_date + day_of_year - 1)
 
   # Build plot
