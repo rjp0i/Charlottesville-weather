@@ -111,6 +111,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE, y_shi
     )
 
   # Hand-crafted, plausible fake data for the solid black line
+  
   # --- Legend block construction ---
 
 legend_days <- 165:201
@@ -247,7 +248,7 @@ legend_record_points <- tibble(
       data = filter(legend.labels, filter_day == min(filter_day)),
       aes(x = date, y = value, label = label),
       min.segment.length = 0, size = 4, direction = "y", hjust = 1, nudge_x = -5, inherit.aes = FALSE) +
-    annotate("text", x = min(legend_df$day_of_year), y = max(legend_df$max), label = "Legend", hjust = 0, vjust = 1, fontface = "bold", size = 5) +
+    annotate("text", x = min(legend_df$date), y = max(legend_df$max), label = "Legend", hjust = 0, vjust = 1, fontface = "bold", size = 5) +
     theme(
       panel.background = element_blank(),
       panel.border = element_blank(),
