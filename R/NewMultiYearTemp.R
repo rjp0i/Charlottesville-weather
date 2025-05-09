@@ -95,33 +95,40 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
     " for ", target_year, ". The ribbons cover the historical range. The last date shown is ",
     format(max(this_year$date, na.rm = TRUE), "%b %d, %Y."))
 
-  # --- Legend: fixed position, lively sample line, record symbols ---
+  # --- Legend: fixed position, made-up data, visually clear ---
   x_range <- range(daily_stats$date, na.rm = TRUE)
   y_range <- range(c(daily_stats$min, daily_stats$max), na.rm = TRUE)
-
-  legend_days <- 185:205
-  legend_df <- daily_stats %>%
-    filter(day_of_year %in% legend_days)
+  legend_width_days <- 21
   legend_x_center <- x_range[1] + 0.5 * as.numeric(diff(x_range))
-  legend_x <- seq(legend_x_center - (nrow(legend_df)-1)/2, legend_x_center + (nrow(legend_df)-1)/2, by = 1)
-  legend_df$date <- legend_x
+  legend_x <- seq(legend_x_center - legend_width_days/2, legend_x_center + legend_width_days/2, by = 1)
 
   legend_height <- 0.15 * diff(y_range)
   legend_top <- y_range[1] + 0.5 * diff(y_range)
   legend_bottom <- legend_top - legend_height
 
-  
-  # Generate a wavy artificial black line for the legend
-  set.seed(42)
-  legend_line <- legend_bottom + legend_height * (
-    0.5 + 0.4 * sin(seq(0, 2*pi, length.out = nrow(legend_df)))
+  # Create plausible, visually separated percentile bands (adjust as needed)
+  legend_df <- data.frame(
+    date = legend_x,
+    min = legend_bottom + 0.00*legend_height + c(-2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -2),
+    x5 = legend_bottom + 0.10*legend_height + c(-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1),
+    x20 = legend_bottom + 0.25*legend_height + c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+    x40 = legend_bottom + 0.40*legend_height + c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+    x60 = legend_bottom + 0.60*legend_height + c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+    x80 = legend_bottom + 0.75*legend_height + c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+    x95 = legend_bottom + 0.90*legend_height + c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1),
+    max = legend_top + c(2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2)
   )
 
-  legend_line_df <- tibble(date = legend_x, temp = legend_line)
+  # Fake black line: trough, wiggle, then peak
+  legend_line <- legend_bottom + legend_height * (
+    0.25 + 0.20 * cos(seq(-pi, pi, length.out = length(legend_x))) +
+      0.10 * sin(seq(0, 4*pi, length.out = length(legend_x)))
+  )
+  legend_line_df <- data.frame(date = legend_x, temp = legend_line)
 
-  # Place record points at the ends of the line
+  # Record points at ends of the line
   legend_record_points <- tibble(
-    date = c(legend_x[1], legend_x[length(legend_x)]),
+    date = c(legend_x[which.max(legend_line)], legend_x[which.min(legend_line)]),
     value = c(max(legend_line), min(legend_line)),
     record_status = c(
       if (var == "TMAX") "record_high_tmax" else "record_high_tmin",
@@ -133,16 +140,21 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
     )
   )
 
-  # For percentile labels, use the rightmost date in the legend block
-  legend_labels <- legend_df %>%
-    filter(date == max(date)) %>%
-    pivot_longer(cols = c(min, x5, x20, x40, x60, x80, x95, max), names_to = "level", values_to = "value") %>%
-    mutate(label = case_when(
-      level == "min" ~ "min",
-      level == "max" ~ "max",
-      level == "x95" ~ "95th percentile of past years",
-      TRUE ~ paste0(str_remove(level, "x"), "th")
-    ))
+  # Percentile labels
+  legend_labels <- data.frame(
+    date = max(legend_x) + 2,
+    value = c(
+      legend_bottom, 
+      legend_bottom + 0.13*legend_height, 
+      legend_bottom + 0.25*legend_height,
+      legend_bottom + 0.40*legend_height,
+      legend_bottom + 0.60*legend_height,
+      legend_bottom + 0.75*legend_height,
+      legend_bottom + 0.90*legend_height,
+      legend_top
+    ),
+    label = c("min", "5th percentile", "20th", "40th", "60th", "80th", "95th percentile", "max")
+  )
 
   # Build plot
   p <- daily_stats |>
@@ -192,7 +204,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
     ) +
     geom_text(
       data = legend_labels,
-      aes(x = max(legend_df$date) + 2, y = value, label = label),
+      aes(x = date, y = value, label = label),
       hjust = 0, size = 3, fontface = "plain", inherit.aes = FALSE
     ) +
     geom_text(
@@ -200,7 +212,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
       aes(x = date, y = value, label = label),
       hjust = 0, vjust = c(-1, 2), size = 3, fontface = "plain", inherit.aes = FALSE
     ) +
-    annotate("text", x = min(legend_df$date), y = max(legend_df$max), label = "Legend", hjust = 0, vjust = 1, fontface = "bold", size = 4) +
+    annotate("text", x = min(legend_x), y = legend_top, label = "Legend", hjust = 0, vjust = 1, fontface = "bold", size = 4) +
     theme(
       panel.background = element_blank(),
       panel.border = element_blank(),
