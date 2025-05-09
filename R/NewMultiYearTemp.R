@@ -186,9 +186,9 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
       data = legend_labels,
       aes(x = date, y = value, label = label),
       inherit.aes = FALSE,
-      min.segment.length = 0, size = 3, direction = "y", hjust = 0, nudge_x = 2
+      min.segment.length = 0, size = 5, direction = "y", hjust = 0, nudge_x = 2
     ) +
-    annotate("text", x = legend_x_center, y = legend_stats$max, label = "Legend", hjust = 0.5, vjust = 0, fontface = "bold", size = 4) +
+    annotate("text", x = legend_x_center, y = legend_stats$max, label = "Legend", hjust = 0.35, vjust = 0, fontface = "bold", size = 4) +
     theme(
       panel.background = element_blank(),
       panel.border = element_blank(),
@@ -228,7 +228,7 @@ generate_combined_temp_plot <- function(target_year, output_dir = "graphs/") {
     rel_heights = c(0.12, 1)
   )
   if(!dir.exists(output_dir)) dir.create(output_dir)
-  output_file <- paste0(output_dir, "CombinedTemp_USC00441593_", target_year, ".png")
+  output_file <- paste0(output_dir, "CombinedTemp_LMO_", target_year, ".png")
   ggsave(output_file, final_plot, width = 10, height = 10)
   return(final_plot)
 }
