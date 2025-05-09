@@ -99,23 +99,11 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
   x_range <- range(daily_stats$date, na.rm = TRUE)
   y_range <- range(c(daily_stats$min, daily_stats$max), na.rm = TRUE)
 
-  legend_width_days <- 25
-  legend_x_center <- x_range[1] + 0.5 * as.numeric(diff(x_range))
-  legend_x <- seq(legend_x_center - legend_width_days/2, legend_x_center + legend_width_days/2, by = 1)
-
-  legend_height <- 0.15 * diff(y_range)
-  legend_top <- y_range[1] + 0.5 * diff(y_range)
-  legend_bottom <- legend_top - legend_height
-
-  # Use percentiles from daily_stats for legend ribbons
   legend_days <- 185:205
   legend_df <- daily_stats %>%
     filter(day_of_year %in% legend_days)
-  # Stretch legend_df vertically to fit the legend box
-  for (col in c("min", "x5", "x20", "x40", "x60", "x80", "x95", "max")) {
-    rng <- range(legend_df[[col]], na.rm = TRUE)
-    legend_df[[col]] <- legend_bottom + (legend_df[[col]] - rng[1]) / diff(rng) * legend_height
-  }
+  legend_x_center <- x_range[1] + 0.5 * as.numeric(diff(x_range))
+  legend_x <- seq(legend_x_center - (nrow(legend_df)-1)/2, legend_x_center + (nrow(legend_df)-1)/2, by = 1)
   legend_df$date <- legend_x
 
   # Generate a wavy artificial black line for the legend
