@@ -103,7 +103,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
   legend_x_center <- x_range[1] + 0.5 * as.numeric(diff(x_range))
   legend_x <- seq(legend_x_center - legend_width_days/2, legend_x_center + legend_width_days/2, by = 1)
 
-  legend_height <- 0.25 * diff(y_range)
+  legend_height <- 0.15 * diff(y_range)
   legend_top <- y_range[1] + 0.5 * diff(y_range)
   legend_bottom <- legend_top - legend_height
 
