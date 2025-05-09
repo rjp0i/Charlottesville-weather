@@ -101,11 +101,11 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
   x_range <- range(daily_stats$date, na.rm = TRUE)
   y_range <- range(c(daily_stats$min, daily_stats$max), na.rm = TRUE)
 
-  legend_width_days <- 25
+  legend_width_days <- 50
   legend_x_center <- x_range[1] + 0.5 * as.numeric(diff(x_range))
   legend_x <- seq(legend_x_center - legend_width_days/2, legend_x_center + legend_width_days/2, by = 1)
 
-  legend_height <- 0.15 * diff(y_range)  # Legend is 15% of y-range tall
+  legend_height <- 0.30 * diff(y_range)  # Legend is 30% of y-range tall
   legend_top <- y_range[1] + 0.5 * diff(y_range)  # Top at 50% up the y-range
 
   # Use percentiles from the whole dataset (for consistency)
