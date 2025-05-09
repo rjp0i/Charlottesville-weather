@@ -98,7 +98,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
   # --- Legend: fixed position, made-up data, visually clear ---
   x_range <- range(daily_stats$date, na.rm = TRUE)
   y_range <- range(c(daily_stats$min, daily_stats$max), na.rm = TRUE)
-  legend_width_days <- 21
+  legend_width_days <- 41
   legend_x_center <- x_range[1] + 0.5 * as.numeric(diff(x_range))
   legend_x <- seq(legend_x_center - (legend_width_days-1)/2, legend_x_center + (legend_width_days-1)/2, by = 1)
 
