@@ -87,7 +87,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
     "record_high_tmax" = 24,  # Filled triangle up
     "record_low_tmax"  = 25,  # Filled triangle down
     "record_high_tmin" = 24,  # Filled triangle up
-    "record_low_tmin"  = 21   # Filled circle
+    "record_low_tmin"  = 25   # Filled triangle down (CHANGED from 21)
   )
   plot_title <- if (var == "TMAX") "Daily High Temperature" else "Daily Low Temperature"
   plot_subtitle <- paste0(
@@ -102,7 +102,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
   x_range <- range(daily_stats$date, na.rm = TRUE)
   y_range <- range(c(daily_stats$min, daily_stats$max), na.rm = TRUE)
   legend_x_center <- x_range[1] + 0.5 * as.numeric(diff(x_range))
-  legend_y_center <- y_range[1] + 0.35 * diff(y_range)
+  legend_y_center <- y_range[1] + 0.10 * diff(y_range)   # LOWERED from 0.35 to 0.10
   legend_width_days <- 25
   legend_x <- seq(legend_x_center - legend_width_days/2, legend_x_center + legend_width_days/2, by = 1)
   legend_df <- data.frame(
@@ -148,24 +148,16 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
       size = 3
     ) +
     scale_color_manual(
-      name = "Record Types",
       values = color_map,
       breaks = names(color_map)
     ) +
     scale_fill_manual(
-      name = "Record Types",
       values = color_map,
       breaks = names(color_map)
     ) +
     scale_shape_manual(
-      name = "Record Types",
       values = shape_map,
       breaks = names(shape_map)
-    ) +
-    guides(
-      color = guide_legend(override.aes = list(size = 4, fill = "white")),
-      fill = "none",
-      shape = guide_legend(override.aes = list(size = 4))
     ) +
     scale_y_continuous(
       breaks = seq(-10, 100, 10),
@@ -209,11 +201,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
       plot.title = element_text(face = "bold", size = 14, color = ifelse(var == "TMAX", "#d1495b", "#3182bd")),
       axis.ticks = element_blank(),
       axis.text.x = if (show_x_axis) element_text() else element_blank(),
-      legend.position = "inside",
-      legend.position.inside = c(0.5, 0.85),
-      legend.justification = c(0.5, 1),
-      legend.box.background = element_rect(fill = "white", colour = "gray50"),
-      legend.box.margin = margin(6, 6, 6, 6)
+      legend.position = "none"
     )
   return(p)
 }
@@ -241,7 +229,7 @@ generate_combined_temp_plot <- function(target_year, output_dir = "graphs/") {
     rel_heights = c(0.12, 1)
   )
   if(!dir.exists(output_dir)) dir.create(output_dir)
-  output_file <- paste0(output_dir, "CombinedTemp_LMO_", target_year, ".png")
+  output_file <- paste0(output_dir, "CombinedTemp_USC00441593_", target_year, ".png")
   ggsave(output_file, final_plot, width = 10, height = 10)
   return(final_plot)
 }
@@ -249,7 +237,3 @@ generate_combined_temp_plot <- function(target_year, output_dir = "graphs/") {
 # Example usage:
 generate_combined_temp_plot(2023)
 generate_combined_temp_plot(1997)
-
-# Batch for all years:
-# all_years <- sort(unique(ghcn$year))
-# purrr::walk(all_years, generate_combined_temp_plot)
