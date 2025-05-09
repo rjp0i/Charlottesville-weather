@@ -96,17 +96,17 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
       size = 3
     ) +
     scale_color_manual(
-      name = "Record Types",
+      name = "Record Temperature",
       values = color_map,
       breaks = names(color_map)
     ) +
     scale_fill_manual(
-      name = "Record Types",
+      name = "Record Temperature",
       values = color_map,
       breaks = names(color_map)
     ) +
     scale_shape_manual(
-      name = "Record Types",
+      name = "Record Temperature",
       values = shape_map,
       breaks = names(shape_map)
     ) +
@@ -180,7 +180,7 @@ generate_combined_temp_plot <- function(target_year, output_dir = "graphs/") {
   )
   # Save
   if(!dir.exists(output_dir)) dir.create(output_dir)
-  output_file <- paste0(output_dir, "CombinedTemp_USC00441593_", target_year, ".png")
+  output_file <- paste0(output_dir, "Temps_LMO_", target_year, ".png")
   ggsave(output_file, final_plot, width = 10, height = 8)
   return(final_plot)
 }
