@@ -92,9 +92,8 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
   plot_title <- if (var == "TMAX") "Daily High Temperature" else "Daily Low Temperature"
   plot_subtitle <- paste0(
     "Line = ", ifelse(var == "TMAX", "daily high", "daily low"),
-    "s for ", target_year, ". ",
-    "Colored symbols: red = record high max, light blue = record low max, ",
-    "orange = record high min, blue = record low min."
+    "s for ", target_year, ". The ribbons show the historical range. The last date shown is Dec 31, ", target_year, ".",
+    ""
   )
 
   # --- Ribbon Legend Integration ---
