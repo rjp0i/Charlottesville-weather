@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@v4  
         
       - name: Build temperature graph
-        run:  Rscript -e 'source("R/MultiYearTemp.R")'
+        run:  Rscript -e 'source("R/NewMultiYearTemp.R")'
         
    #   - name: Build precipitation graph
    #     run:  Rscript -e 'source("R/MultiYearPrecip.R")'
