@@ -249,3 +249,7 @@ generate_combined_temp_plot <- function(target_year, output_dir = "graphs/") {
 # Example usage:
 generate_combined_temp_plot(2023)
 generate_combined_temp_plot(1997)
+
+# Batch for all years:
+# all_years <- sort(unique(ghcn$year))
+# purrr::walk(all_years, generate_combined_temp_plot)
