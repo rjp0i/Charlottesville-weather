@@ -100,37 +100,80 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
   legend_stats <- get_legend_stats()
   x_range <- range(daily_stats$date, na.rm = TRUE)
   y_range <- range(c(daily_stats$min, daily_stats$max), na.rm = TRUE)
-  legend_x_center <- x_range[1] + 0.5 * as.numeric(diff(x_range))
-  legend_y_center <- y_range[1] + 0.10 * diff(y_range)   # LOWERED from 0.35 to 0.10
-  legend_width_days <- 25
-  legend_x <- seq(legend_x_center - legend_width_days/2, legend_x_center + legend_width_days/2, by = 1)
-  legend_df <- data.frame(
-    date = legend_x,
-    min = legend_stats$min,
-    x5 = legend_stats$x5,
-    x20 = legend_stats$x20,
-    x40 = legend_stats$x40,
-    x60 = legend_stats$x60,
-    x80 = legend_stats$x80,
-    x95 = legend_stats$x95,
-    max = legend_stats$max
-  )
-  legend_line_df <- data.frame(
-    date = legend_x,
-    temp = legend_stats$x40
-  )
-  legend_labels <- tibble(
-    date = c(legend_x[1], legend_x[length(legend_x)]),
-    value = c(legend_stats$min, legend_stats$max),
-    label = c("min", "max")
-  ) %>%
-    bind_rows(
-      tibble(
-        date = legend_x[length(legend_x)],
-        value = c(legend_stats$x5, legend_stats$x20, legend_stats$x40, legend_stats$x60, legend_stats$x80, legend_stats$x95),
-        label = c("5th percentile", "20th", "40th", "60th", "80th", "95th")
-      )
+  #legend_x_center <- x_range[1] + 0.5 * as.numeric(diff(x_range))
+  #legend_y_center <- y_range[1] + 0.10 * diff(y_range)   # LOWERED from 0.35 to 0.10
+  #legend_width_days <- 25
+  #legend_x <- seq(legend_x_center - legend_width_days/2, legend_x_center + legend_width_days/2, by = 1)
+  #legend_df <- data.frame(
+  #  date = legend_x,
+  #  min = legend_stats$min,
+  #  x5 = legend_stats$x5,
+  #  x20 = legend_stats$x20,
+  #  x40 = legend_stats$x40,
+  #  x60 = legend_stats$x60,
+  #  x80 = legend_stats$x80,
+  #  x95 = legend_stats$x95,
+  #  max = legend_stats$max
+  #)
+  #legend_line_df <- data.frame(
+  #  date = legend_x,
+  #  temp = legend_stats$x40
+  #)
+  #legend_labels <- tibble(
+  #  date = c(legend_x[1], legend_x[length(legend_x)]),
+  #  value = c(legend_stats$min, legend_stats$max),
+  #  label = c("min", "max")
+  #) %>%
+  #  bind_rows(
+  #    tibble(
+  #      date = legend_x[length(legend_x)],
+  #      value = c(legend_stats$x5, legend_stats$x20, legend_stats$x40, legend_stats$x60, legend_stats$x80, legend_stats$x95),
+  #      label = c("5th percentile", "20th", "40th", "60th", "80th", "95th")
+  #    )
+  #  )
+# Calculate ranges for legend scaling
+x_range <- range(daily_stats$date, na.rm = TRUE)
+y_range <- range(c(daily_stats$min, daily_stats$max), na.rm = TRUE)
+
+legend_x_center <- x_range[1] + 0.5 * as.numeric(diff(x_range))
+legend_width_days <- 25
+legend_x <- seq(legend_x_center - legend_width_days/2, legend_x_center + legend_width_days/2, by = 1)
+
+legend_box_height <- 0.15 * diff(y_range)  # Legend covers 15% of y-range
+legend_center <- y_range[1] + 0.10 * diff(y_range)  # 10% up from bottom
+
+legend_vals <- as.numeric(legend_stats)
+legend_scaled <- (legend_vals - min(legend_vals)) / (max(legend_vals) - min(legend_vals))
+legend_y <- legend_center + (legend_scaled - 0.5) * legend_box_height
+names(legend_y) <- names(legend_stats)
+
+legend_df <- data.frame(
+  date = legend_x,
+  min = legend_y["min"],
+  x5 = legend_y["x5"],
+  x20 = legend_y["x20"],
+  x40 = legend_y["x40"],
+  x60 = legend_y["x60"],
+  x80 = legend_y["x80"],
+  x95 = legend_y["x95"],
+  max = legend_y["max"]
+)
+legend_line_df <- data.frame(
+  date = legend_x,
+  temp = legend_y["x40"]
+)
+legend_labels <- tibble(
+  date = c(legend_x[1], legend_x[length(legend_x)]),
+  value = c(legend_y["min"], legend_y["max"]),
+  label = c("min", "max")
+) %>%
+  bind_rows(
+    tibble(
+      date = legend_x[length(legend_x)],
+      value = c(legend_y["x5"], legend_y["x20"], legend_y["x40"], legend_y["x60"], legend_y["x80"], legend_y["x95"]),
+      label = c("5th percentile", "20th", "40th", "60th", "80th", "95th")
     )
+  )
 
   # Build plot
   p <- daily_stats |>
