@@ -164,6 +164,12 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE, y_shi
     )
   )
 
+origin_date <- as.Date(paste0(target_year, "-01-01"))
+legend.line.df <- legend.line.df %>%
+  mutate(date = origin_date + day_of_year - 1)
+legend_record_points <- legend_record_points %>%
+  mutate(date = origin_date + day_of_year - 1)
+
   # Build plot
   p <- daily_stats |>
     ggplot(aes(x = date)) +
