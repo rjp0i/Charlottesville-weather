@@ -98,7 +98,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
   # --- Legend: fixed position, made-up data, visually clear ---
   x_range <- range(daily_stats$date, na.rm = TRUE)
   y_range <- range(c(daily_stats$min, daily_stats$max), na.rm = TRUE)
-  legend_width_days <- 41
+  legend_width_days <- 31
   legend_x_center <- x_range[1] + 0.5 * as.numeric(diff(x_range))
   legend_x <- seq(legend_x_center - (legend_width_days-1)/2, legend_x_center + (legend_width_days-1)/2, by = 1)
 
@@ -109,14 +109,14 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
   # Create plausible, visually separated percentile bands (adjust as needed)
   legend_df <- data.frame(
     date = legend_x,
-    min = legend_bottom + 0.00*legend_height + c(-2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -2),
-    x5 = legend_bottom + 0.10*legend_height + c(-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1),
+    min = legend_bottom + 0.00*legend_height + c(-2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -2),
+    x5 = legend_bottom + 0.10*legend_height + c(-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1),
     x20 = legend_bottom + 0.25*legend_height,
     x40 = legend_bottom + 0.40*legend_height,
     x60 = legend_bottom + 0.60*legend_height,
     x80 = legend_bottom + 0.75*legend_height,
-    x95 = legend_bottom + 0.90*legend_height + c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1),
-    max = legend_top + c(2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2)
+    x95 = legend_bottom + 0.90*legend_height + c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1),
+    max = legend_top + c(2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2)
   )
 
   # Fake black line: trough, wiggle, then peak
