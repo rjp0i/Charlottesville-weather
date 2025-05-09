@@ -246,7 +246,7 @@ legend_record_points <- tibble(
      data = filter(legend_record_points, record_status == "record_low_tmax"),
      aes(x = date + 5, y = temp - 5, label = label),
      hjust = 0, size = 4, fontface = "plain"
-   )
+   ) +
   # Old code, trying to place both record points at one time
     #geom_text(
     #  data = legend_record_points,
