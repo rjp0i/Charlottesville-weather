@@ -204,24 +204,24 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE, y_shi
     geom_ribbon(data = legend_df, aes(x = date, ymin = x5, ymax = x95), fill = "#74a9cf", inherit.aes = FALSE) +
     geom_ribbon(data = legend_df, aes(x = date, ymin = x20, ymax = x80), fill = "#2b8cbe", inherit.aes = FALSE) +
     geom_ribbon(data = legend_df, aes(x = date, ymin = x40, ymax = x60), fill = "#045a8d", inherit.aes = FALSE) +
-    geom_line(data = legend.line.df, aes(x = day_of_year, y = temp), color = "black", lwd = 1, inherit.aes = FALSE) +
+    geom_line(data = legend.line.df, aes(x = date, y = temp), color = "black", lwd = 1, inherit.aes = FALSE) +
     geom_point(
       data = legend_record_points,
-      aes(x = day_of_year, y = temp, shape = record_status, fill = record_status),
+      aes(x = date, y = temp, shape = record_status, fill = record_status),
       color = "black", size = 3, inherit.aes = FALSE
     ) +
     geom_text(
       data = legend_record_points,
-      aes(x = day_of_year, y = temp, label = label),
+      aes(x = date, y = temp, label = label),
       hjust = 0, vjust = c(-1, 2), size = 4, fontface = "plain", inherit.aes = FALSE
     ) +
     ggrepel::geom_text_repel(
       data = filter(legend.labels, filter_day == max(filter_day)),
-      aes(x = day_of_year, y = value, label = label),
+      aes(x = date, y = value, label = label),
       min.segment.length = 0, size = 4, direction = "y", hjust = 0, nudge_x = 5, inherit.aes = FALSE) +
     ggrepel::geom_text_repel(
       data = filter(legend.labels, filter_day == min(filter_day)),
-      aes(x = day_of_year, y = value, label = label),
+      aes(x = date, y = value, label = label),
       min.segment.length = 0, size = 4, direction = "y", hjust = 1, nudge_x = -5, inherit.aes = FALSE) +
     annotate("text", x = min(legend_df$day_of_year), y = max(legend_df$max), label = "Legend", hjust = 0, vjust = 1, fontface = "bold", size = 5) +
     theme(
