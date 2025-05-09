@@ -67,7 +67,7 @@ get_legend_stats <- function() {
 }
 
 # Plotting function for a single variable (TMAX or TMIN)
-plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
+plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE, y_shift = 60) {
   is.leap.year <- lubridate::leap_year(target_year)
   this_year <- ghcn |> filter(year == target_year)
   daily_stats <- get_daily_summary_stats(var, target_year) |>
@@ -95,65 +95,73 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
     " for ", target_year, ". The ribbons cover the historical range. The last date shown is ",
     format(max(this_year$date, na.rm = TRUE), "%b %d, %Y."))
 
-  # --- Legend: fixed position, made-up data, visually clear ---
-  x_range <- range(daily_stats$date, na.rm = TRUE)
-  y_range <- range(c(daily_stats$min, daily_stats$max), na.rm = TRUE)
-  legend_width_days <- 31
-  legend_x_center <- x_range[1] + 0.5 * as.numeric(diff(x_range))
-  legend_x <- seq(legend_x_center - (legend_width_days-1)/2, legend_x_center + (legend_width_days-1)/2, by = 1)
+  # --- Legend block construction ---
+  legend_days <- 165:201
+  legend_df <- daily_stats %>%
+    filter(day_of_year %in% legend_days) %>%
+    mutate(
+      max = max - y_shift,
+      min = min - y_shift,
+      x5 = x5 - y_shift,
+      x20 = x20 - y_shift,
+      x40 = x40 - y_shift,
+      x60 = x60 - y_shift,
+      x80 = x80 - y_shift,
+      x95 = x95 - y_shift
+    )
 
-  legend_height <- 0.35 * diff(y_range)   # Taller legend box
-  legend_top <- y_range[1] + 0.35 * diff(y_range)   # Lower on plot
-  legend_bottom <- legend_top - legend_height
+  # Hand-crafted, plausible fake data for the solid black line
+  legend.line.df <- tibble(
+    day_of_year = legend_days,
+    temp = case_when(
+      day_of_year == 165 ~ legend_df$x40[legend_df$day_of_year == 165],
+      day_of_year == 168 ~ legend_df$x40[legend_df$day_of_year == 165] + 3,
+      day_of_year == 172 ~ legend_df$x40[legend_df$day_of_year == 165] - 4,
+      day_of_year == 177 ~ legend_df$min[legend_df$day_of_year == 177] - 1,
+      day_of_year == 180 ~ legend_df$x20[legend_df$day_of_year == 180] - 1,
+      day_of_year == 182 ~ legend_df$x60[legend_df$day_of_year == 182] + 1,
+      day_of_year == 185 ~ legend_df$x60[legend_df$day_of_year == 185] - 6,
+      day_of_year == 189 ~ legend_df$max[legend_df$day_of_year == 189] + 1,
+      day_of_year == 194 ~ legend_df$x60[legend_df$day_of_year == 194],
+      day_of_year == 198 ~ legend_df$x40[legend_df$day_of_year == 198],
+      day_of_year == 201 ~ legend_df$x60[legend_df$day_of_year == 201],
+      TRUE ~ NA_real_
+    )
+  ) %>%
+    filter(!is.na(temp))
 
-  # Create plausible, visually separated percentile bands (adjust as needed)
-  legend_df <- data.frame(
-    date = legend_x,
-    min = legend_bottom + 0.00*legend_height + c(-2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -2),
-    x5 = legend_bottom + 0.10*legend_height + c(-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1),
-    x20 = legend_bottom + 0.25*legend_height,
-    x40 = legend_bottom + 0.40*legend_height,
-    x60 = legend_bottom + 0.60*legend_height,
-    x80 = legend_bottom + 0.75*legend_height,
-    x95 = legend_bottom + 0.90*legend_height + c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1),
-    max = legend_top + c(2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2)
-  )
+  # Labels for percentiles
+  legend.labels <- legend_df %>%
+    pivot_longer(cols = c(max, min, starts_with("x")),
+                 names_to = "levels") %>%
+    mutate(label = case_when(
+      levels == "max" ~ "max",
+      levels == "min" ~ "min",
+      levels == "x95" ~ "95th percentile of past years",
+      TRUE ~ paste0(str_sub(levels, 2, -1), "th")
+    )) %>%
+    mutate(filter_day = ifelse(
+      levels %in% c("max", "x80", "x40", "x5"),
+      min(day_of_year),
+      max(day_of_year)
+    )) %>%
+    filter(day_of_year == filter_day)
 
-  # Fake black line: trough, wiggle, then peak
-  legend_line <- legend_bottom + legend_height * (
-    0.25 + 0.20 * cos(seq(-pi, pi, length.out = length(legend_x))) +
-      0.10 * sin(seq(0, 4*pi, length.out = length(legend_x)))
-  )
-  legend_line_df <- data.frame(date = legend_x, temp = legend_line)
-
-  # Record points at edges of the ribbon
+  # Points for record high/low
   legend_record_points <- tibble(
-    date = c(legend_x[which.max(legend_df$max)], legend_x[which.min(legend_df$min)]),
-    value = c(max(legend_df$max), min(legend_df$min)),
+    day_of_year = c(177, 189),
+    temp = c(
+      legend.line.df$temp[legend.line.df$day_of_year == 177],
+      legend.line.df$temp[legend.line.df$day_of_year == 189]
+    ),
     record_status = c(
-      if (var == "TMAX") "record_high_tmax" else "record_high_tmin",
-      if (var == "TMAX") "record_low_tmax" else "record_low_tmin"
+      if (var == "TMAX") "record_low_tmax" else "record_low_tmin",
+      if (var == "TMAX") "record_high_tmax" else "record_high_tmin"
     ),
     label = c(
-      if (var == "TMAX") "all-time record daily high set this year" else "all-time record daily low set this year",
-      if (var == "TMAX") "all-time record lowest daily high set this year" else "all-time record lowest daily low set this year"
+      if (var == "TMAX") "all-time record lowest daily high set this year" else "all-time record lowest daily low set this year",
+      if (var == "TMAX") "all-time record daily high set this year" else "all-time record daily low set this year"
     )
-  )
-
-  # Percentile labels
-  legend_labels <- data.frame(
-    date = max(legend_x) + 2,
-    value = c(
-      legend_bottom, 
-      legend_bottom + 0.13*legend_height, 
-      legend_bottom + 0.25*legend_height,
-      legend_bottom + 0.40*legend_height,
-      legend_bottom + 0.60*legend_height,
-      legend_bottom + 0.75*legend_height,
-      legend_bottom + 0.90*legend_height,
-      legend_top
-    ),
-    label = c("min", "5th percentile", "20th", "40th", "60th", "80th", "95th percentile", "max")
   )
 
   # Build plot
@@ -191,28 +199,31 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
       title = plot_title,
       subtitle = plot_subtitle
     ) +
-    # --- Draw legend centered at midyear, below midpoint ---
+    # --- Draw legend block ---
     geom_ribbon(data = legend_df, aes(x = date, ymin = min, ymax = max), fill = "#bdc9e1", inherit.aes = FALSE) +
     geom_ribbon(data = legend_df, aes(x = date, ymin = x5, ymax = x95), fill = "#74a9cf", inherit.aes = FALSE) +
     geom_ribbon(data = legend_df, aes(x = date, ymin = x20, ymax = x80), fill = "#2b8cbe", inherit.aes = FALSE) +
     geom_ribbon(data = legend_df, aes(x = date, ymin = x40, ymax = x60), fill = "#045a8d", inherit.aes = FALSE) +
-    geom_line(data = legend_line_df, aes(x = date, y = temp), color = "black", lwd = 1, inherit.aes = FALSE) +
+    geom_line(data = legend.line.df, aes(x = day_of_year, y = temp), color = "black", lwd = 1, inherit.aes = FALSE) +
     geom_point(
       data = legend_record_points,
-      aes(x = date, y = value, shape = record_status, fill = record_status),
+      aes(x = day_of_year, y = temp, shape = record_status, fill = record_status),
       color = "black", size = 3, inherit.aes = FALSE
     ) +
     geom_text(
-      data = legend_labels,
-      aes(x = date, y = value, label = label),
-      hjust = 0, size = 4, fontface = "plain", inherit.aes = FALSE
-    ) +
-    geom_text(
       data = legend_record_points,
-      aes(x = date, y = value, label = label),
+      aes(x = day_of_year, y = temp, label = label),
       hjust = 0, vjust = c(-1, 2), size = 4, fontface = "plain", inherit.aes = FALSE
     ) +
-    annotate("text", x = min(legend_x), y = legend_top+0.1, label = "Legend", hjust = 0, vjust = 1, fontface = "bold", size = 5) +
+    ggrepel::geom_text_repel(
+      data = filter(legend.labels, filter_day == max(filter_day)),
+      aes(x = day_of_year, y = value, label = label),
+      min.segment.length = 0, size = 4, direction = "y", hjust = 0, nudge_x = 5, inherit.aes = FALSE) +
+    ggrepel::geom_text_repel(
+      data = filter(legend.labels, filter_day == min(filter_day)),
+      aes(x = day_of_year, y = value, label = label),
+      min.segment.length = 0, size = 4, direction = "y", hjust = 1, nudge_x = -5, inherit.aes = FALSE) +
+    annotate("text", x = min(legend_df$day_of_year), y = max(legend_df$max), label = "Legend", hjust = 0, vjust = 1, fontface = "bold", size = 5) +
     theme(
       panel.background = element_blank(),
       panel.border = element_blank(),
@@ -228,6 +239,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE) {
     )
   return(p)
 }
+
 
 
 
