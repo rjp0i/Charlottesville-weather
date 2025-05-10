@@ -76,6 +76,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE, y_shi
   if(!is.leap.year){
     daily_stats <- daily_stats |> filter(!(month == "02" & day == "29"))
   }
+  last_date <- max(daily_stats$date, na.rm = TRUE)
   record_status <- get_record_status(this_year, daily_stats, var)
   color_map <- c(
     "record_high_tmax" = "#d1495b",
@@ -89,10 +90,10 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE, y_shi
     "record_high_tmin" = 24,  # Filled triangle up
     "record_low_tmin"  = 25   # Filled triangle down
   )
-  plot_title <- if (var == "TMAX") "Daily High Temperature" else "Daily Low Temperature"
+  plot_title <- if (var == "TMAX") "Daily Maximum Temperature" else "Daily Minimum Temperature"
   plot_subtitle <- paste0(
-    "The line shows daily ", ifelse(var == "TMAX", "highs", "lows"),
-    " for ", target_year, ". The ribbons cover the historical range (1893 - present). The last date shown is ",
+    "The line shows daily ", ifelse(var == "TMAX", "maximums", "minimums"),
+    " for ", target_year, ". The ribbons cover the historical range (Jan 1, 1893 - ", format(last_date, "%b %d, %Y"),"). The last date shown is ",
     format(max(this_year$date, na.rm = TRUE), "%b %d, %Y."))
 
   # --- Legend block construction ---
