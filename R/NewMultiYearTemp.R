@@ -79,7 +79,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE, y_shi
   record_status <- get_record_status(this_year, daily_stats, var)
   color_map <- c(
     "record_high_tmax" = "#d1495b",
-    "record_low_tmax"  = "#6baed6",
+    "record_low_tmax"  = "#3182bd",
     "record_high_tmin" = "#fd8d3c",
     "record_low_tmin"  = "#3182bd"
   )
@@ -92,7 +92,7 @@ plot_temp_panel <- function(target_year, var = "TMAX", show_x_axis = TRUE, y_shi
   plot_title <- if (var == "TMAX") "Daily High Temperature" else "Daily Low Temperature"
   plot_subtitle <- paste0(
     "The line shows daily ", ifelse(var == "TMAX", "highs", "lows"),
-    " for ", target_year, ". The ribbons cover the historical range. The last date shown is ",
+    " for ", target_year, ". The ribbons cover the historical range (1893 - present). The last date shown is ",
     format(max(this_year$date, na.rm = TRUE), "%b %d, %Y."))
 
   # --- Legend block construction ---
@@ -183,8 +183,8 @@ legend_record_points <- tibble(
     if (var == "TMAX") "record_high_tmax" else "record_high_tmin"
   ),
   label = c(
-    if (var == "TMAX") "all-time record lowest daily high set this year" else "all-time record lowest daily low set this year",
-    if (var == "TMAX") "all-time record daily high set this year" else "all-time record daily low set this year"
+    if (var == "TMAX") "all-time record low daily max for this date" else "all-time record low daily minimum for this date",
+    if (var == "TMAX") "all-time record high daily mex for this date" else "all-time record high daily min for this date"
   )
 ) %>%
   mutate(date = origin_date + day_of_year - 1)
@@ -235,18 +235,31 @@ legend_record_points <- tibble(
       aes(x = date, y = temp, shape = record_status, fill = record_status),
       color = "black", size = 3, inherit.aes = FALSE
     ) +
-    # For record high (red, at upper right)
+    # For record high tmax (red, at upper right)
     geom_text(
      data = filter(legend_record_points, record_status == "record_high_tmax"),
      aes(x = date + 5, y = temp + 5, label = label),
      hjust = 0, size = 4, fontface = "plain"
    ) +
-   # For record low (blue, at lower right)
+   # For record low tmax (blue, at lower right)
+   geom_text(
+     data = filter(legend_record_points, record_status == "record_low_tmin"),
+     aes(x = date + 5, y = temp - 5, label = label),
+     hjust = 0, size = 4, fontface = "plain"
+   ) +
+    # For record high tmin (orange, at upper right)
+    geom_text(
+     data = filter(legend_record_points, record_status == "record_high_tmin"),
+     aes(x = date + 5, y = temp + 5, label = label),
+     hjust = 0, size = 4, fontface = "plain"
+   ) +
+   # For record low tmin (blue, at lower right)
    geom_text(
      data = filter(legend_record_points, record_status == "record_low_tmax"),
      aes(x = date + 5, y = temp - 5, label = label),
      hjust = 0, size = 4, fontface = "plain"
    ) +
+
   # Old code, trying to place both record points at one time
     #geom_text(
     #  data = legend_record_points,
