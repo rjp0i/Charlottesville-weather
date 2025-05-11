@@ -326,8 +326,9 @@ generate_combined_temp_plot <- function(target_year, output_dir = "graphs/") {
   return(final_plot)
 }
 Batch for all years:
-# all_years <- sort(unique(ghcn$year))
+all_years <- sort(unique(ghcn$year))
+purrr::walk(all_years, generate_combined_temp_plot)
 
 # Example usage:
-generate_combined_temp_plot(2023)
-generate_combined_temp_plot(1997)
+#generate_combined_temp_plot(2023)
+#generate_combined_temp_plot(1997)
