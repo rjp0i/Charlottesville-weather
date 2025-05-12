@@ -325,6 +325,7 @@ generate_combined_temp_plot <- function(target_year, output_dir = "graphs/") {
   ggsave(output_file, final_plot, width = 10, height = 10)
   return(final_plot)
 }
+
 Batch for all years:
 all_years <- sort(unique(ghcn$year))
 purrr::walk(all_years, generate_combined_temp_plot)
