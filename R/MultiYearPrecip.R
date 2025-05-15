@@ -144,8 +144,8 @@ generate_precip_plot <- function(target_year,
 # Generate for specific year
 generate_precip_plot(2024)
 
-# Generate for multiple years
-c(2020, 2021, 2022, 2023, 2024, 2015, 1997) |> walk(generate_precip_plot)
+# Generate for current year
+c(2025) |> walk(generate_precip_plot)
 
 # Generate for all complete years
 walk(complete_years, generate_precip_plot)
