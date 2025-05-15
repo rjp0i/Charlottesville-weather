@@ -115,7 +115,7 @@ cum.precip.graph <- daily.summary.stats |>
        caption = paste("Records begin on January 1, 1893.",
                        "This graph was last updated on", format(Sys.Date(), "%B %d, %Y."),
                        "Cumulative totals include February 29th during leap years.")) +
-  annotate("label", x = 10, y = 40, label = str_wrap(median.annotation, 40),
+  annotate("label", x = 10, y = 60, label = str_wrap(median.annotation, 40),
            hjust = 0, size = 3, fill = "linen") +
   theme(panel.background = element_blank(),
         panel.border = element_blank(),
