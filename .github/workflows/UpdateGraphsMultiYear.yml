@@ -46,13 +46,13 @@ jobs:
           command: Rscript -e 'source("R/Retrieve_GHCN_USC00441593.R")'
           continue_on_error: true
         
-      - name: Build temperature graph
+    #  - name: Build temperature graph
     #    run:  Rscript -e 'source("R/NewMultiYearTemp.R")'
         
       - name: Build precipitation graph
         run:  Rscript -e 'source("R/MultiYearPrecip.R")'
 
-      - name: Annual Temperature graph
+   #   - name: Annual Temperature graph
    #     run: Rscript -e 'source("R/AnnualTemp.R")'
         
       - name: Commit graphs
