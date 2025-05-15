@@ -128,5 +128,5 @@ cum.precip.graph <- daily.summary.stats |>
 
 cum.precip.graph
 
-ggsave("graphs/AnnualCumulativePrecipitation_USC00441593.png", plot = cum.precip.graph,
+ggsave("graphs/CurrentPrecip_LMO.png", plot = cum.precip.graph,
        width = 8, height = 4)
