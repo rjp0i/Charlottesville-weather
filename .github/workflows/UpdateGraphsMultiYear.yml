@@ -47,13 +47,13 @@ jobs:
           continue_on_error: true
         
       - name: Build temperature graph
-        run:  Rscript -e 'source("R/NewMultiYearTemp.R")'
+    #    run:  Rscript -e 'source("R/NewMultiYearTemp.R")'
         
       - name: Build precipitation graph
         run:  Rscript -e 'source("R/MultiYearPrecip.R")'
 
       - name: Annual Temperature graph
-        run: Rscript -e 'source("R/AnnualTemp.R")'
+   #     run: Rscript -e 'source("R/AnnualTemp.R")'
         
       - name: Commit graphs
         uses: stefanzweifel/git-auto-commit-action@v5
