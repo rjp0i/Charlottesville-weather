@@ -46,17 +46,21 @@ jobs:
           command: Rscript -e 'source("R/Retrieve_GHCN_USC00441593.R")'
           continue_on_error: true
         
-    #  - name: Build temperature graph
-    #    run:  Rscript -e 'source("R/NewMultiYearTemp.R")'
-        
-    #  - name: Build annual precipitation graph, previous years
-    #    run:  Rscript -e 'source("R/MultiYearPrecip.R")'
-
+      - name: Build temperature graph
+        run:  Rscript -e 'source("R/NewMultiYearTemp.R")'
+    # Creates CombinedTemp_LMO_YYYY.png graphs
+    
+      - name: Build annual precipitation graph, previous years
+        run:  Rscript -e 'source("R/MultiYearPrecip.R")'
+    # Creates Precip_YYYY.png graphs
+    
       - name: Build current year precip graph
         run: Rscript -e 'source("R/BuildCumulativePrecipitation.R")'
-
-   #   - name: Annual Temperature graph
-   #     run: Rscript -e 'source("R/AnnualTemp.R")'
+    # Creates Precip_YYYY.png graph (for this year)
+    
+      - name: Annual Temperature graph
+        run: Rscript -e 'source("R/AnnualTemp.R")'
+    # Creates AnnualTemperatureTrends.png graph
         
       - name: Commit graphs
         uses: stefanzweifel/git-auto-commit-action@v5
