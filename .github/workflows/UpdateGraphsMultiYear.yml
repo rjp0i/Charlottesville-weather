@@ -48,7 +48,7 @@ jobs:
         
       - name: Build temperature graph
         run:  Rscript -e 'source("R/NewMultiYearTemp.R")'
-    # Creates CombinedTemp_LMO_YYYY.png graphs
+    # Creates Temp_LMO_YYYY.png graphs
     
       - name: Build annual precipitation graph, previous years
         run:  Rscript -e 'source("R/MultiYearPrecip.R")'
