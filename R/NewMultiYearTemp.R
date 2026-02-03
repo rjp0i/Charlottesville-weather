@@ -321,7 +321,7 @@ generate_combined_temp_plot <- function(target_year, output_dir = "graphs/") {
     rel_heights = c(0.12, 1)
   )
   if(!dir.exists(output_dir)) dir.create(output_dir)
-  output_file <- paste0(output_dir, "CombinedTemp_LMO_", target_year, ".png")
+  output_file <- paste0(output_dir, "Temp_LMO_", target_year, ".png")
   ggsave(output_file, final_plot, width = 10, height = 10)
   return(final_plot)
 }
