@@ -28,8 +28,10 @@ ghcn.wide <- ghcn |>
   separate(col = yearmoda, sep = c(4,6), into = c("year", "month", "day")) |>
   pivot_wider(names_from = element, values_from = value) |>
   # Ensure the columns exist before math (adds them as NA if missing)
-  bind_rows(tibble(TMAX = numeric(), TMIN = numeric(), PRCP = numeric())) |>
-  )  # convert from tenths of mm to inches
+  # This fixes the script if a whole month is missing one variable
+  bind_rows(tibble(TMAX = numeric(), TMIN = numeric(), PRCP = numeric(), 
+                   SNOW = numeric(), SNWD = numeric())) |>
+  # convert from tenths of mm to inches
   mutate(PRCP = PRCP * 0.00393701,
          SNOW = SNOW * 0.00393701,
          SNWD = SNWD * 0.00393701) |>
@@ -38,6 +40,8 @@ ghcn.wide <- ghcn |>
          TMIN = ((TMIN / 10) * (9/5)) + 32) |>
   mutate(date = as.Date(paste(year, month, day, sep = "-")),
          day_of_year = lubridate::yday(date)) |>
+  # Drop the empty row we added with bind_rows if it's still all NA
+  filter(!is.na(year)) |> 
   select(year, month, day, date, day_of_year, PRCP, SNOW, SNWD,
          TMAX, TMIN)
 
