@@ -66,3 +66,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Update data & graphs
+          push_options: '--force' # This forces the runner's version to overwrite the remote
