@@ -22,9 +22,14 @@ ghcn <- data.table::fread("https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/by_sta
 ghcn.wide <- ghcn |>
   select(yearmoda, element, value) |>
   filter(element %in% c("PRCP", "SNOW", "SNWD", "TMAX", "TMIN")) |>
+  # Handle potential duplicate rows for the same day/element
+  group_by(yearmoda, element) |>
+  summarize(value = mean(value, na.rm = TRUE), .groups = "drop") |> 
   separate(col = yearmoda, sep = c(4,6), into = c("year", "month", "day")) |>
   pivot_wider(names_from = element, values_from = value) |>
-  # convert from tenths of mm to inches
+  # Ensure the columns exist before math (adds them as NA if missing)
+  bind_rows(tibble(TMAX = numeric(), TMIN = numeric(), PRCP = numeric())) |>
+  )  # convert from tenths of mm to inches
   mutate(PRCP = PRCP * 0.00393701,
          SNOW = SNOW * 0.00393701,
          SNWD = SNWD * 0.00393701) |>
