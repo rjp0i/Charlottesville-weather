@@ -187,7 +187,7 @@ legend_record_points <- tibble(
   ),
   label = c(
     if (var == "TMAX") "all-time record low daily max for this date" else "all-time record low daily minimum for this date",
-    if (var == "TMAX") "all-time record high daily mex for this date" else "all-time record high daily min for this date"
+    if (var == "TMAX") "all-time record high daily max for this date" else "all-time record high daily min for this date"
   )
 ) %>%
   mutate(date = origin_date + day_of_year - 1)
