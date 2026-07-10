@@ -1,4 +1,4 @@
-## Milwaukee daily weather history bulk download
+## Charlottesville 2W daily weather history bulk download
 
 This file (`data/GHCN_USW00014839.csv`) contains daily weather reports from Milwaukee Mitchell Airport (GHCND:USW00014839). The start date is April 1, 1938.
 
