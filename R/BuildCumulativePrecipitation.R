@@ -63,9 +63,9 @@ today.vs.median <- this.year |>
   inner_join(daily.summary.stats |> 
                select(day_of_year, x50))
 median.annotation <- paste("As of", format(last.date, "%B %d, %Y,"),
-                           "McCormick Observatory has received", round(today.vs.median$cum_precip, 1), 
+                           "McCormick Observatory has received", round(today.vs.median$cum_precip, 2), 
                            "cumulative inches of rain, year-to-date,",
-                           "compared with a median of", round(today.vs.median$x50, 1),
+                           "compared with a median of", round(today.vs.median$x50, 2),
                            "in years since 1893.")
 
 cum.precip.graph <- daily.summary.stats |>
@@ -93,7 +93,7 @@ cum.precip.graph <- daily.summary.stats |>
   geom_line(data = this.year,
             aes(y = cum_precip), linewidth = 1.2) +
   ggrepel::geom_label_repel(data = filter(this.year, day_of_year == max(day_of_year)),
-                            aes(y = cum_precip, label = round(cum_precip, 1)),
+                            aes(y = cum_precip, label = round(cum_precip, 2)),
                             point.padding = 5, direction = "y", alpha = 0.5) +
   geom_segment(data = pctile.labels, aes(x = 365, xend = 367, y = precip, yend = precip)) +
   geom_text(data = pctile.labels, aes(367.5, precip, label = pctile),
